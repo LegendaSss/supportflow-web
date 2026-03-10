@@ -9,8 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@libsql/client": "^0.17.0",
-    "@prisma/adapter-libsql": "^7.4.2",
+    "@prisma/adapter-pg": "^7.4.2",
     "@prisma/client": "^7.4.2",
     "@types/canvas-confetti": "^1.9.0",
     "@types/qrcode.react": "^1.0.5",
@@ -26,12 +25,14 @@
     "lucide-react": "^0.575.0",
     "next": "16.1.6",
     "next-themes": "^0.4.6",
+    "pg": "^8.20.0",
     "prisma": "^7.4.2",
     "qrcode.react": "^4.2.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "socket.io": "^4.8.3",
     "socket.io-client": "^4.8.3",
+    "ssh2": "^1.17.0",
     "uuid": "^13.0.0",
     "xlsx": "^0.18.5"
   },
@@ -39,6 +40,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20",
+    "@types/pg": "^8.18.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/uuid": "^10.0.0",
