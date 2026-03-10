@@ -7,7 +7,12 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status')
 
-    const where = status && status !== 'all' ? { status } : {}
+    let where: any = {}
+    if (status === 'active') {
+        where = { status: { in: ['new', 'open', 'pending'] } }
+    } else if (status && status !== 'all') {
+        where = { status }
+    }
 
     const tickets = await prisma!.ticket.findMany({
         where,
