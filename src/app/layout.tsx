@@ -7,6 +7,8 @@ import { LanguageProvider } from "@/components/LanguageProvider";
 import StatusBar from "@/components/StatusBar";
 import PageTransition from "@/components/PageTransition";
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: "SupportFlow — Панель поддержки",
   description: "Telegram support panel с CRM, биллингом и AI-ассистентом",
