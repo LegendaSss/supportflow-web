@@ -25,6 +25,7 @@ RUN npx prisma generate
 
 # Build Next.js
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV DATABASE_URL="postgresql://postgres:postgres@localhost:5432/supportflow?schema=public"
 RUN npm run build
 
 # Stage 3: Production server
