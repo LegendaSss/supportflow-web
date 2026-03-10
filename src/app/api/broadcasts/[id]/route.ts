@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { prisma } from '@/lib/prisma'
 import { deleteBroadcastToTelegram } from '@/lib/bot'
 import { NextResponse } from 'next/server'
