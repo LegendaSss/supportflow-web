@@ -1,0 +1,1 @@
+require('dotenv').config(); fetch(process.env.REMNAWAVE_URL + '/api/users', {headers:{'Authorization':'Bearer ' + process.env.REMNAWAVE_API_KEY}}).then(r=>r.json()).then(d=>console.dir(d.users?.[0] || d[0] || d, {depth: null})).catch(console.error);

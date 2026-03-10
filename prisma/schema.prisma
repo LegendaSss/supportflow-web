@@ -1,0 +1,213 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Операторы / Админы панели
+model User {
+  id           String    @id @default(uuid())
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         String    @default("operator") // admin, senior, operator
+  avatar       String?
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  tickets      Ticket[]  @relation("AssignedOperator")
+  messages     Message[] @relation("OperatorMessages")
+}
+
+// Клиенты из Telegram
+model Client {
+  id             String        @id @default(uuid())
+  telegramId     String        @unique
+  username       String?
+  firstName      String?
+  lastName       String?
+  balance        Float         @default(0)
+  tariffId       String?
+  tariff         Tariff?       @relation(fields: [tariffId], references: [id])
+  remnawareId    String?
+  tags           String?       // JSON array of tags (e.g. '["VIP", "Refund"]')
+  isBlocked      Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  tickets        Ticket[]
+  transactions   Transaction[]
+  subscriptions  Subscription[]
+  messages       Message[]     @relation("ClientMessages")
+}
+
+// Тикеты (обращения)
+model Ticket {
+  id          String    @id @default(uuid())
+  number      Int       @default(0)
+  clientId    String
+  client      Client    @relation(fields: [clientId], references: [id])
+  operatorId  String?
+  operator    User?     @relation("AssignedOperator", fields: [operatorId], references: [id])
+  status      String    @default("new") // new, open, pending, resolved, closed
+  priority    String    @default("normal") // low, normal, high, urgent
+  subject     String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  closedAt    DateTime?
+
+  messages    Message[]
+}
+
+// Сообщения в тикете
+model Message {
+  id             String   @id @default(uuid())
+  ticketId       String
+  ticket         Ticket   @relation(fields: [ticketId], references: [id])
+  content        String
+  senderType     String   // client, operator, system, ai
+  clientId       String?
+  client         Client?  @relation("ClientMessages", fields: [clientId], references: [id])
+  operatorId     String?
+  operator       User?    @relation("OperatorMessages", fields: [operatorId], references: [id])
+  isInternal     Boolean  @default(false) // внутренние заметки
+  mediaType      String?  // photo, video, voice, audio, document, sticker
+  mediaUrl       String?  // локальный путь к файлу
+  mediaFileId    String?  // Telegram file_id
+  fileName       String?  // имя файла
+  duration       Int?     // длительность (голосовые/видео) в секундах
+  telegramMsgId  Int?     // ID сообщения в Telegram
+  isRead         Boolean  @default(false)
+  isEdited       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @default(now()) @updatedAt
+}
+
+// Шаблоны быстрых ответов
+model Template {
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  category  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Авто-ответы
+model AutoResponse {
+  id           String   @id @default(uuid())
+  name         String
+  keywords     String   // JSON array of keywords
+  responseText String
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// Тарифные планы
+model Tariff {
+  id          String   @id @default(uuid())
+  name        String
+  price       Float
+  duration    Int      // в днях
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  clients     Client[]
+}
+
+// Транзакции (история операций)
+model Transaction {
+  id          String   @id @default(uuid())
+  clientId    String
+  client      Client   @relation(fields: [clientId], references: [id])
+  operatorId  String?  // ID of the operator who performed the action
+  amount      Float
+  type        String   // credit, debit
+  category    String   @default("payment") // payment, bonus, refund, renewal, referral
+  status      String   @default("completed") // completed, refunded
+  description String?
+  createdAt   DateTime @default(now())
+}
+
+// Настройки AI
+model AISettings {
+  id                  String  @id @default(uuid())
+  isEnabled           Boolean @default(false)
+  model               String  @default("gemini-2.0-flash")
+  systemPrompt        String  @default("")
+  ragEnabled          Boolean @default(false)
+  maxKnowledgeRecords Int     @default(20)
+  balanceOnErrors     Boolean @default(true)
+}
+
+// База знаний
+model KnowledgeArticle {
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  category  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// VPN Подписки
+model Subscription {
+  id              String   @id @default(uuid())
+  clientId        String
+  client          Client   @relation(fields: [clientId], references: [id])
+  remnawaveId     String   // UUID in RemnaWave
+  remnawaveShortId String? // Short UUID
+  expireAt        DateTime
+  trafficLimitGb  Int      @default(0)
+  trafficUsedGb   Float    @default(0)
+  status          String   @default("active")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// Рассылки (Маркетинг)
+// Рассылки (Маркетинг)
+model Broadcast {
+  id            String   @id @default(uuid())
+  title         String
+  content       String
+  mediaUrl      String?
+  mediaType     String?   // photo, video
+  status        String   @default("draft") // draft, sending, completed, failed
+  targetFilters String?  // JSON string of filters
+  sentCount     Int      @default(0)
+  totalCount    Int      @default(0)
+  errorCount    Int      @default(0)
+  scheduledAt   DateTime?
+  sentAt        DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  recipients    BroadcastRecipient[]
+}
+
+model BroadcastRecipient {
+  id           String    @id @default(uuid())
+  broadcastId  String
+  broadcast    Broadcast @relation(fields: [broadcastId], references: [id])
+  clientId     String
+  telegramId   String
+  messageId    Int       // The telegram message_id
+  status       String    @default("sent") // sent, failed
+  error        String?
+  createdAt    DateTime  @default(now())
+}
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  type      String   // user_joined, ticket_created, broadcast_completed, payment_received
+  message   String
+  metadata  String?  // JSON string
+  createdAt DateTime @default(now())
+}
