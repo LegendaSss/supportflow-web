@@ -183,7 +183,7 @@ export default function TicketsPage() {
     }, [])
 
     async function fetchTickets() {
-        const res = await fetch('/api/tickets?status=open')
+        const res = await fetch('/api/tickets?status=active')
         const all: Ticket[] = await res.json()
         setCounts({ all: all.length, mine: all.filter(t => t.operator !== null).length, unassigned: all.filter(t => t.operator === null).length })
         let filtered = all
