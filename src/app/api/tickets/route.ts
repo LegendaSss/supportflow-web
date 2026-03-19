@@ -10,6 +10,8 @@ export async function GET(request: Request) {
     let where: any = {}
     if (status === 'active') {
         where = { status: { in: ['new', 'open', 'pending'] } }
+    } else if (status === 'resolved') {
+        where = { status: { in: ['resolved', 'closed'] } }
     } else if (status && status !== 'all') {
         where = { status }
     }

@@ -144,13 +144,15 @@ export default function TicketsPage() {
     const [clientInfo, setClientInfo] = useState<{
         id: string; firstName: string | null; username: string | null;
         telegramId: string; balance: number; tags: string | null;
+        remnawareId: string | null;
         tariff: { name: string } | null;
         transactions: Array<{ amount: number; type: string; description: string | null; createdAt: string }>
     } | null>(null)
 
-    const [counts, setCounts] = useState({ all: 0, mine: 0, unassigned: 0 })
+    const [counts, setCounts] = useState({ all: 0, new: 0, inProgress: 0, resolved: 0 })
     const [isSending, setIsSending] = useState(false)
     const [isRecording, setIsRecording] = useState(false)
+    const [showMicrophoneError, setShowMicrophoneError] = useState(false)
     const [isDragging, setIsDragging] = useState(false)
     const [tagInput, setTagInput] = useState('')
     const [typingId, setTypingId] = useState<string | null>(null)
@@ -183,12 +185,26 @@ export default function TicketsPage() {
     }, [])
 
     async function fetchTickets() {
-        const res = await fetch('/api/tickets?status=active')
-        const all: Ticket[] = await res.json()
-        setCounts({ all: all.length, mine: all.filter(t => t.operator !== null).length, unassigned: all.filter(t => t.operator === null).length })
-        let filtered = all
-        if (activeTab === 'mine') filtered = all.filter(t => t.operator !== null)
-        else if (activeTab === 'unassigned') filtered = all.filter(t => t.operator === null)
+        // Fetch active tickets for counts and list
+        const resActive = await fetch('/api/tickets?status=active')
+        const activeTickets: Ticket[] = await resActive.json()
+        
+        // Fetch resolved tickets for count
+        const resResolved = await fetch('/api/tickets?status=resolved')
+        const resolvedTickets: Ticket[] = await resResolved.json()
+
+        setCounts({ 
+            all: activeTickets.length + resolvedTickets.length, 
+            new: activeTickets.filter(t => t.status === 'new').length, 
+            inProgress: activeTickets.filter(t => t.status === 'open' || t.status === 'pending').length,
+            resolved: resolvedTickets.length
+        })
+
+        let filtered = activeTab === 'resolved' ? resolvedTickets : activeTickets
+        
+        if (activeTab === 'new') filtered = activeTickets.filter(t => t.status === 'new')
+        else if (activeTab === 'inProgress') filtered = activeTickets.filter(t => t.status === 'open' || t.status === 'pending')
+        
         if (searchTerm) {
             const s = searchTerm.toLowerCase()
             filtered = filtered.filter(t => t.number.toString().includes(s) || (t.client.firstName || '').toLowerCase().includes(s) || (t.client.username || '').toLowerCase().includes(s))
@@ -264,7 +280,7 @@ export default function TicketsPage() {
                 setIsSending(false)
             }
             recorderRef.current = rec; rec.start(); setIsRecording(true)
-        } catch { alert('Микрофон недоступен') }
+        } catch { setShowMicrophoneError(true) }
     }
 
     async function updateStatus(id: string, status: string) {
@@ -388,6 +404,16 @@ export default function TicketsPage() {
         refreshMessages(selectedTicket, false)
     }
 
+    async function updateRemnaId(id: string) {
+        if (!clientInfo || !selectedTicket) return
+        await fetch(`/api/clients/${clientInfo.id}`, { 
+            method: 'PATCH', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({ remnawareId: id }) 
+        })
+        refreshMessages(selectedTicket, false)
+    }
+
     const pageItems = tickets.slice((currentPage - 1) * perPage, currentPage * perPage)
     const totalTx = (clientInfo?.transactions || []).reduce((s, t) => s + (t.type === 'credit' ? t.amount : 0), 0)
 
@@ -419,16 +445,21 @@ export default function TicketsPage() {
     const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const val = e.target.value
         setReplyText(val)
-        if (val.startsWith('/')) {
+        
+        // Find last incidence of /
+        const lastSlashIndex = val.lastIndexOf('/')
+        if (lastSlashIndex !== -1 && (lastSlashIndex === 0 || val[lastSlashIndex - 1] === ' ')) {
             setShowTemplateMenu(true)
-            setTemplateFilter(val.slice(1))
+            setTemplateFilter(val.slice(lastSlashIndex + 1))
         } else {
             setShowTemplateMenu(false)
         }
     }
 
     const insertTemplate = (tpl: Template) => {
-        setReplyText(tpl.content)
+        const lastSlashIndex = replyText.lastIndexOf('/')
+        const before = replyText.substring(0, lastSlashIndex)
+        setReplyText(before + tpl.content)
         setShowTemplateMenu(false)
     }
 
@@ -466,7 +497,7 @@ export default function TicketsPage() {
 
                         {/* Tabs */}
                         <div className="tab-bar">
-                            {([['all', 'Все', counts.all], ['mine', 'Мои', counts.mine], ['unassigned', 'Новые', counts.unassigned]] as [string, string, number][]).map(([id, label, count]) => (
+                            {([['all', 'Все', counts.all], ['new', 'Новые', counts.new], ['inProgress', 'В работе', counts.inProgress], ['resolved', 'Решенные', counts.resolved]] as [string, string, number][]).map(([id, label, count]) => (
                                 <button key={id} onClick={() => setActiveTab(id)} className={`tab-btn ${activeTab === id ? 'active' : ''}`}>
                                     {label}
                                     {count > 0 && <span className="tab-count">{count}</span>}
@@ -737,6 +768,21 @@ export default function TicketsPage() {
                                 <input value={tagInput} onChange={e => setTagInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && addTag()} placeholder="Добавить тег..." className="tag-input" />
                             </div>
 
+                            {/* VPN Linkage */}
+                            <div style={{ padding: '0 16px 16px' }}>
+                                <div style={{ fontSize: '10px', fontWeight: 900, color: 'rgba(255,255,255,0.25)', letterSpacing: '0.1em', marginBottom: '10px' }}>ПРИВЯЗКА VPN (UUID)</div>
+                                <input 
+                                    defaultValue={clientInfo.remnawareId || ''} 
+                                    onBlur={e => updateRemnaId(e.target.value)}
+                                    onKeyDown={e => e.key === 'Enter' && updateRemnaId((e.target as HTMLInputElement).value)}
+                                    placeholder="Введите UUID из панели..." 
+                                    className="tag-input" 
+                                />
+                                {clientInfo.remnawareId && (
+                                    <div style={{ marginTop: '6px', fontSize: '9px', color: '#34d399', fontWeight: 700 }}>✅ Привязан</div>
+                                )}
+                            </div>
+
                             {/* Recent Transactions */}
                             {(clientInfo.transactions || []).length > 0 && (
                                 <div style={{ padding: '0 16px 16px' }}>
@@ -767,6 +813,28 @@ export default function TicketsPage() {
             {selectedImage && (
                 <div onClick={() => setSelectedImage(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.95)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(16px)' }}>
                     <img src={selectedImage} style={{ maxWidth: '90%', maxHeight: '90%', borderRadius: '16px' }} alt="" />
+                </div>
+            )}
+
+            {/* Microphone Error Modal */}
+            {showMicrophoneError && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(10px)' }}>
+                    <div style={{ background: 'rgba(30,30,40,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px', padding: '32px', maxWidth: '440px', width: '90%', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.4)' }}>
+                        <div style={{ width: '64px', height: '64px', borderRadius: '20px', background: 'rgba(238,43,84,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', color: '#ee2b54' }}>
+                            <AlertTriangle size={32} />
+                        </div>
+                        <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'white', marginBottom: '12px' }}>Микрофон недоступен</h3>
+                        <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, marginBottom: '24px' }}>
+                            Веб-браузеры разрешают доступ к микрофону только через безопасное соединение (HTTPS) или на localhost.<br/><br/>
+                            <b>Для теста в Google Chrome:</b><br/>
+                            Перейдите в <code>chrome://flags/#unsafely-treat-insecure-origin-as-secure</code><br/>
+                            и добавьте <code>http://{window.location.host}</code> в список разрешенных.
+                        </p>
+                        <button onClick={() => setShowMicrophoneError(false)} 
+                            style={{ width: '100%', padding: '12px', background: 'var(--accent-gradient)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 800, cursor: 'pointer', transition: 'all .2s' }}>
+                            Понятно
+                        </button>
+                    </div>
                 </div>
             )}
 
