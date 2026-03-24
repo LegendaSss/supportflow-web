@@ -12,103 +12,56 @@ export class RemnaWaveService {
             throw new Error('RemnaWave configuration missing in .env');
         }
 
-        const { spawnSync } = require('child_process');
         const url = `${this.baseUrl}${endpoint}`;
         const method = options.method || 'GET';
 
-        const fs = require('fs');
-        const path = require('path');
-        const os = require('os');
+        const headers: Record<string, string> = {
+            "Authorization": `Bearer ${this.apiKey}`,
+            "X-Api-Key": this.apiKey,
+            "User-Agent": "SupportFlow-Native/1.0",
+            "Accept": "application/json",
+            ...((options.headers as Record<string, string>) || {})
+        };
 
-        let tempFilePath = null;
         if (options.body) {
-            tempFilePath = path.join(os.tmpdir(), `rw_request_${Date.now()}.json`);
-            fs.writeFileSync(tempFilePath, options.body);
+            headers["Content-Type"] = "application/json";
         }
 
-        const scriptPath = path.join(os.tmpdir(), `rw_script_${Date.now()}.ps1`);
-        const psScript = `
-$ErrorActionPreference = "Stop"
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-$headers = @{
-    "Authorization" = "Bearer ${this.apiKey}"
-    "X-Api-Key" = "${this.apiKey}"
-    "User-Agent" = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
-    "Accept" = "application/json"
-}
-$body = $null
-if ("${tempFilePath ? tempFilePath.replace(/\\/g, '/') : ''}") {
-    $body = Get-Content -Path "${tempFilePath ? tempFilePath.replace(/\\/g, '/') : ''}" -Raw -Encoding UTF8
-}
-try {
-    $params = @{
-        Uri = "${url}"
-        Method = "${method}"
-        Headers = $headers
-    }
-    if ($body) {
-        $params.Body = $body
-        $params.ContentType = "application/json"
-    }
-    $response = Invoke-RestMethod @params
-    if ($null -eq $response) { 
-        Write-Output "" 
-    } else {
-        $response | ConvertTo-Json -Depth 10 | Write-Output
-    }
-} catch {
-    if ($_.Exception.Response) {
-        $statusCode = $_.Exception.Response.StatusCode.value__
-        $errorResponse = $_.Exception.Response.GetResponseStream() 
-        $reader = New-Object System.IO.StreamReader($errorResponse)
-        $out = $reader.ReadToEnd()
-        Write-Output "---API_ERROR_START---"
-        Write-Output $out
-        Write-Output "---API_ERROR_END---"
-        Write-Error "[RemnaWave-PSBridge API-Error $statusCode] $out"
-    } else {
-        Write-Error "[RemnaWave-PSBridge Network-Error] $($_.Exception.Message)"
-    }
-    exit 1
-} finally {
-    if ("${tempFilePath ? tempFilePath.replace(/\\/g, '/') : ''}") { 
-        Remove-Item -Path "${tempFilePath ? tempFilePath.replace(/\\/g, '/') : ''}" -ErrorAction SilentlyContinue 
-    }
-}
-`;
-        fs.writeFileSync(scriptPath, psScript, { encoding: 'utf8' });
-
-        console.log(`[RemnaWave-PSBridge] ${method} ${url}`);
-
-        const result = spawnSync('powershell', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', scriptPath], { encoding: 'utf8' });
-
-        // Clean up script
-        try { fs.unlinkSync(scriptPath); } catch (e) { }
-
-        if (result.status !== 0) {
-            let errorBody = 'No error body';
-            const logOut = result.stdout || '';
-            if (logOut.includes('---API_ERROR_START---')) {
-                errorBody = logOut.split('---API_ERROR_START---')[1].split('---API_ERROR_END---')[0].trim();
-            }
-
-            console.error(`[RemnaWave-PSBridge Fatal Error]:\nSTDOUT: ${result.stdout}\nSTDERR: ${result.stderr}\nBODY: ${errorBody}`);
-            throw new Error(`RemnaWave API Bridge Error: ${result.stderr} | Body: ${errorBody}`);
-        }
-
-        if (!result.stdout || result.stdout.trim() === '') {
-            return null;
-        }
+        console.log(`[RemnaWave API] ${method} ${url}`);
 
         try {
-            const cleanStdout = result.stdout.split('---API_ERROR_START---')[0].trim();
-            const parsed = JSON.parse(cleanStdout);
-            if (parsed && typeof parsed === 'object' && 'response' in parsed) {
-                return parsed.response;
+            const fetchOptions: RequestInit = {
+                ...options,
+                method,
+                headers,
+                // In Next.js App Router, we usually want no-store for admin API calls unless explicitly cached
+                cache: 'no-store'
+            };
+
+            const response = await fetch(url, fetchOptions);
+            const text = await response.text();
+
+            if (!response.ok) {
+                console.error(`[RemnaWave API Error ${response.status}]:\nBODY: ${text}`);
+                throw new Error(`RemnaWave API Error ${response.status}: ${text}`);
             }
-            return parsed;
-        } catch (e) {
-            return result.stdout.trim() || null;
+
+            if (!text || text.trim() === '') {
+                return null;
+            }
+
+            try {
+                const parsed = JSON.parse(text);
+                if (parsed && typeof parsed === 'object' && 'response' in parsed) {
+                    return parsed.response;
+                }
+                return parsed;
+            } catch (e) {
+                return text;
+            }
+        } catch (error: any) {
+            console.error(`[RemnaWave Network Error]: ${error.message}`);
+            throw error;
         }
     }
 

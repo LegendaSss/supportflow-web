@@ -65,6 +65,10 @@
   --glass-blur: blur(24px);
 }
 
+:root.sidebar-collapsed {
+  --sidebar-width: 88px;
+}
+
 .light {
   /* Colors - Premium Glassmorphism Light Theme */
   --bg-primary: #f8f9fc;
@@ -1872,4 +1876,57 @@ select option {
 .pagination-arrow:disabled {
   opacity: 0.3;
   cursor: not-allowed;
+}
+
+/* Animations & Skeletons */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--overlay-base) 25%,
+    var(--overlay-hover) 50%,
+    var(--overlay-base) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes staggerFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: staggerFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Responsive Utilities */
+@media (max-width: 1200px) {
+  .dashboard-grid, .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-grid, .stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .hide-on-mobile {
+    display: none !important;
+  }
 }

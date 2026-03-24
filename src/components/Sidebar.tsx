@@ -61,10 +61,26 @@ export default function Sidebar() {
     const { t } = useTranslation()
     const lastActivityId = useRef<string | null>(null)
     const [unreadCount, setUnreadCount] = useState(0)
+    const [isCollapsed, setIsCollapsed] = useState(false)
 
     useEffect(() => {
+        const stored = localStorage.getItem('supportflow_sidebar_collapsed')
+        if (stored === 'true') {
+            setIsCollapsed(true)
+            document.documentElement.classList.add('sidebar-collapsed')
+        }
         setMounted(true)
     }, [])
+
+    const toggleCollapse = () => {
+        setIsCollapsed(prev => {
+            const next = !prev
+            localStorage.setItem('supportflow_sidebar_collapsed', next.toString())
+            if (next) document.documentElement.classList.add('sidebar-collapsed')
+            else document.documentElement.classList.remove('sidebar-collapsed')
+            return next
+        })
+    }
 
     // Real-time activity polling
     useEffect(() => {
@@ -124,7 +140,7 @@ export default function Sidebar() {
                 WebkitBackdropFilter: 'blur(32px)',
                 borderRight: '1px solid var(--overlay-light)',
                 height: '100vh',
-                width: '280px',
+                width: 'var(--sidebar-width)',
                 position: 'fixed',
                 left: 0,
                 top: 0,
@@ -132,7 +148,8 @@ export default function Sidebar() {
                 flexDirection: 'column',
                 zIndex: 100,
                 overflowY: 'auto',
-                overflowX: 'hidden'
+                overflowX: 'hidden',
+                transition: 'width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)'
             }}>
                 {/* Ambient Top Glow */}
                 <div style={{
@@ -153,7 +170,7 @@ export default function Sidebar() {
                         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '50%', background: 'linear-gradient(180deg, rgba(255,255,255,0.2) 0%, transparent 100%)' }} />
                         <Sparkles size={20} color="white" />
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', opacity: isCollapsed ? 0 : 1, transition: 'opacity 0.2s' }}>
                         <span className="logo-text" style={{
                             fontSize: '22px', fontWeight: 800, letterSpacing: '-0.5px',
                             background: 'linear-gradient(180deg, var(--text-primary) 0%, var(--text-muted) 100%)',
@@ -198,8 +215,9 @@ export default function Sidebar() {
 
                     <div className="sidebar-section-title" style={{
                         fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-muted)',
-                        padding: '8px 16px 4px', fontWeight: 700, letterSpacing: '1.5px', marginTop: '8px'
-                    }}>{t('sidebar.workspace')}</div>
+                        padding: '8px 16px 4px', fontWeight: 700, letterSpacing: '1.5px', marginTop: '8px',
+                        opacity: isCollapsed ? 0 : 1, transition: 'opacity 0.2s'
+                    }}>{!isCollapsed ? t('sidebar.workspace') : '—'}</div>
 
                     {mainNav.map((item) => {
                         const isActive = pathname === item.href;
@@ -235,15 +253,15 @@ export default function Sidebar() {
                                     }} />
                                 )}
                                 <span style={{
-                                    display: 'flex', alignItems: 'center',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px',
                                     color: isActive ? 'var(--accent-primary)' : 'inherit',
                                     transition: 'color 0.3s'
                                 }}>
                                     <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
                                 </span>
-                                <span style={{ fontSize: '14px', letterSpacing: '0.2px' }}>{t(item.labelKey)}</span>
+                                {!isCollapsed && <span style={{ fontSize: '14px', letterSpacing: '0.2px', whiteSpace: 'nowrap' }}>{t(item.labelKey)}</span>}
 
-                                {item.badge && mounted && (
+                                {item.badge && mounted && !isCollapsed && (
                                     <span className="badge" style={{
                                         marginLeft: 'auto', background: 'var(--accent-gradient)',
                                         color: 'white', fontSize: '11px', padding: '2px 8px',
@@ -259,8 +277,9 @@ export default function Sidebar() {
 
                     <div className="sidebar-section-title" style={{
                         fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-muted)',
-                        padding: '24px 16px 4px', fontWeight: 700, letterSpacing: '1.5px'
-                    }}>{t('sidebar.system')}</div>
+                        padding: '24px 16px 4px', fontWeight: 700, letterSpacing: '1.5px',
+                        opacity: isCollapsed ? 0 : 1, transition: 'opacity 0.2s'
+                    }}>{!isCollapsed ? t('sidebar.system') : '—'}</div>
 
                     {toolsNav.map((item) => {
                         const isActive = pathname === item.href;
@@ -296,13 +315,13 @@ export default function Sidebar() {
                                     }} />
                                 )}
                                 <span style={{
-                                    display: 'flex', alignItems: 'center',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px',
                                     color: isActive ? 'var(--accent-primary)' : 'inherit',
                                     transition: 'color 0.3s'
                                 }}>
                                     <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
                                 </span>
-                                <span style={{ fontSize: '14px', letterSpacing: '0.2px' }}>{t(item.labelKey)}</span>
+                                {!isCollapsed && <span style={{ fontSize: '14px', letterSpacing: '0.2px', whiteSpace: 'nowrap' }}>{t(item.labelKey)}</span>}
                             </Link>
                         )
                     })}
@@ -331,7 +350,7 @@ export default function Sidebar() {
                             {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
                         </button>
 
-                        {mounted && (
+                        {mounted && !isCollapsed && (
                             <div style={{
                                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                                 padding: '4px 6px', background: 'var(--bg-input)',
@@ -367,6 +386,45 @@ export default function Sidebar() {
                                 </button>
                             </div>
                         )}
+                        {!isCollapsed && (
+                            <button
+                                onClick={toggleCollapse}
+                                style={{
+                                    width: '40px', height: '40px', borderRadius: '12px',
+                                    background: 'var(--bg-input)', border: '1px solid var(--overlay-light)',
+                                    color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    cursor: 'pointer', transition: 'all 0.2s', marginLeft: 'auto'
+                                }}
+                            >
+                                <ChevronRight size={16} style={{ transform: 'rotate(180deg)' }} />
+                            </button>
+                        )}
+                        {isCollapsed && Object.keys(theme || {}).length > 0 && ( /* just rendering collapser when collapsed */
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+                                <button
+                                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                                    style={{
+                                        width: '40px', height: '40px', borderRadius: '12px',
+                                        background: 'var(--bg-input)', border: '1px solid var(--overlay-light)',
+                                        color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        cursor: 'pointer', transition: 'all 0.2s'
+                                    }}
+                                >
+                                    {theme === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
+                                </button>
+                                <button
+                                    onClick={toggleCollapse}
+                                    style={{
+                                        width: '40px', height: '40px', borderRadius: '12px',
+                                        background: 'var(--bg-input)', border: '1px solid var(--overlay-light)',
+                                        color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        cursor: 'pointer', transition: 'all 0.2s'
+                                    }}
+                                >
+                                    <ChevronRight size={16} />
+                                </button>
+                            </div>
+                        )}
 
 
                     </div>
@@ -390,17 +448,21 @@ export default function Sidebar() {
                     >
                         <div className="avatar" style={{
                             width: '42px', height: '42px', borderRadius: '12px',
-                            background: 'var(--bg-tertiary)',
+                            background: 'var(--bg-tertiary)', flexShrink: 0,
                             border: '1px solid var(--overlay-base)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             fontWeight: 700, fontSize: '16px', color: 'var(--text-primary)',
                             boxShadow: 'inset 0 2px 4px var(--overlay-light)'
                         }}>A</div>
-                        <div className="user-info" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                            <div className="user-name" style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '0.2px' }}>Admin User</div>
-                            <div className="user-role" style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 500 }}>System Administrator</div>
-                        </div>
-                        <ChevronRight size={16} color="var(--text-muted)" />
+                        {!isCollapsed && (
+                            <>
+                                <div className="user-info" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+                                    <div className="user-name" style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '0.2px' }}>Admin User</div>
+                                    <div className="user-role" style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 500 }}>System Administrator</div>
+                                </div>
+                                <ChevronRight size={16} color="var(--text-muted)" style={{ flexShrink: 0 }} />
+                            </>
+                        )}
                     </div>
                 </div>
 

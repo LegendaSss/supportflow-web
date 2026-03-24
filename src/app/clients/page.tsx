@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from 'react'
 import {
     Users, Search, X, Ticket, DollarSign, Calendar, Tag, Shield,
     ChevronRight, ArrowUpRight, Ban, CheckCircle2, Clock, Zap, RefreshCw, Trash2, Plus, Database,
-    Smartphone, Unlink, QrCode, AlertTriangle, Activity
+    Smartphone, Unlink, QrCode, AlertTriangle, Activity, UserX
 } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import { Pagination } from '@/components/Pagination'
@@ -199,8 +199,16 @@ function ClientProfileDrawer({ clientId, onClose }: { clientId: string; onClose:
                 </div>
 
                 {loading || !profile ? (
-                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
-                        Загрузка...
+                    <div style={{ padding: '30px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                            <div className="skeleton" style={{ width: '80px', height: '80px', borderRadius: '24px' }} />
+                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                <div className="skeleton" style={{ width: '60%', height: '24px', borderRadius: '6px' }} />
+                                <div className="skeleton" style={{ width: '40%', height: '16px', borderRadius: '6px' }} />
+                            </div>
+                        </div>
+                        <div className="skeleton" style={{ width: '100%', height: '80px', borderRadius: '16px' }} />
+                        <div className="skeleton" style={{ width: '100%', height: '60px', borderRadius: '16px' }} />
                     </div>
                 ) : (
                     <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
@@ -341,7 +349,9 @@ function ClientProfileDrawer({ clientId, onClose }: { clientId: string; onClose:
                             {activeTab === 'subs' && (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                     {liveLoading ? (
-                                        <div style={{ padding: '30px', textAlign: 'center', color: 'var(--text-muted)' }}>Загрузка данных из ядра VPN... ⏳</div>
+                                        <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                            {[...Array(3)].map((_, i) => <div key={i} className="skeleton" style={{ height: '100px', borderRadius: '16px' }} />)}
+                                        </div>
                                     ) : liveSub ? (
                                         <div style={{
                                             border: '1px solid var(--overlay-hover)', borderRadius: '16px',
@@ -724,9 +734,15 @@ export default function ClientsPage() {
                 borderRadius: '24px', overflow: 'hidden', boxShadow: 'var(--shadow-sm)'
             }}>
                 {loading ? (
-                    <div style={{ padding: '60px', textAlign: 'center', color: 'var(--text-muted)' }}>Загрузка...</div>
+                    <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {[...Array(7)].map((_, i) => <div key={i} className="skeleton" style={{ height: '64px', borderRadius: '16px' }} />)}
+                    </div>
                 ) : filtered.length === 0 ? (
-                    <div style={{ padding: '60px', textAlign: 'center', color: 'var(--text-muted)' }}>Клиентов не найдено</div>
+                    <div className="empty-state">
+                        <UserX className="empty-icon" />
+                        <div className="empty-title">Клиенты не найдены</div>
+                        <div className="empty-desc">Попробуйте изменить параметры поиска или сбросить фильтры</div>
+                    </div>
                 ) : (
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>

@@ -39,7 +39,13 @@ export default function AISettingsPage() {
         setTimeout(() => setSaved(false), 2000)
     }
 
-    if (!settings) return <div style={{ padding: '40px', color: 'var(--text-muted)' }}>Загрузка...</div>
+    if (!settings) return (
+        <div style={{ padding: '32px', maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div className="skeleton" style={{ width: '300px', height: '40px', borderRadius: '12px' }} />
+            <div className="skeleton" style={{ width: '100%', height: '200px', borderRadius: '24px' }} />
+            <div className="skeleton" style={{ width: '100%', height: '400px', borderRadius: '24px' }} />
+        </div>
+    )
 
     return (
         <>

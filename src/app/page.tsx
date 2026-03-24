@@ -16,8 +16,10 @@ async function LiveActivities() {
   return (
     <div className="activity-feed" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       {activities.length === 0 ? (
-        <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)', background: 'var(--overlay-base)', borderRadius: '16px' }}>
-          Событий пока нет
+        <div className="empty-state" style={{ background: 'var(--overlay-base)', border: '1px dashed var(--border-light)', padding: '40px 20px', marginTop: 0, borderRadius: '16px' }}>
+          <Activity className="empty-icon" style={{ opacity: 0.3 }} />
+          <div className="empty-title" style={{ fontSize: '14px' }}>Событий пока нет</div>
+          <div className="empty-desc" style={{ fontSize: '12px' }}>Новые уведомления появятся здесь</div>
         </div>
       ) : (
         activities.map((activity: any) => (
@@ -141,7 +143,6 @@ export default async function Dashboard() {
                 <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <TicketIcon size={20} />
                 </div>
-                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--accent-green)', background: 'rgba(16, 185, 129, 0.1)', padding: '4px 8px', borderRadius: '8px' }}>+12%</span>
               </div>
               <div className="stat-value" style={{ fontSize: '28px', fontWeight: 800 }}>{ticketCounts.total}</div>
               <div className="stat-label" style={{ color: 'var(--text-muted)', fontSize: '14px', marginTop: '4px' }}>Всего тикетов</div>
@@ -240,7 +241,7 @@ export default async function Dashboard() {
                       </td>
                       <td style={{ padding: '14px 16px' }}>
                         <span className={`status-badge ${ticket.status}`} style={{ fontSize: '11px', fontWeight: 700 }}>
-                          {ticket.status === 'new' ? 'Новый' : ticket.status === 'open' ? 'В работе' : 'Ожидает'}
+                          {ticket.status === 'new' ? 'Новый' : ticket.status === 'open' ? 'В работе' : ticket.status === 'resolved' ? 'Решён' : ticket.status === 'closed' ? 'Закрыт' : 'Ожидает'}
                         </span>
                       </td>
                       <td style={{ padding: '14px 16px', borderRadius: '0 12px 12px 0', fontSize: '13px', color: 'var(--text-muted)' }}>

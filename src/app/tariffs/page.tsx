@@ -227,10 +227,13 @@ export default function TariffsPage() {
 
     if (isLoading) {
         return (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '80vh' }}>
-                <div style={{ position: 'relative' }}>
-                    <RefreshCw className="animate-spin" size={64} color="var(--accent-primary)" />
-                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '24px', height: '24px', background: 'var(--accent-primary)', borderRadius: '50%', filter: 'blur(10px)', opacity: 0.5 }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', padding: '32px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
+                    {[...Array(4)].map((_, i) => <div key={i} className="skeleton" style={{ height: '140px', borderRadius: '24px' }} />)}
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '32px' }}>
+                    <div className="skeleton" style={{ height: '400px', borderRadius: '32px' }} />
+                    <div className="skeleton" style={{ height: '400px', borderRadius: '32px' }} />
                 </div>
             </div>
         )
@@ -587,7 +590,6 @@ export default function TariffsPage() {
                             <TrendingUp size={28} />
                         </div>
                         <div style={{ textAlign: 'right' }}>
-                            <div style={{ fontSize: '12px', fontWeight: 800, color: 'var(--accent-green)', background: 'rgba(16, 185, 129, 0.1)', padding: '6px 12px', borderRadius: '100px' }}>+12.4%</div>
                         </div>
                     </div>
                     <div className="kpi-title">Общая выручка</div>
@@ -605,7 +607,6 @@ export default function TariffsPage() {
                     </div>
                     <div className="kpi-title">Активные подписки</div>
                     <div className="kpi-value">{stats.summary?.activeSubsCount || 0}</div>
-                    <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '12px', fontWeight: 600 }}>На 5% больше, чем вчера</div>
                 </div>
 
                 <div className="glass-card">

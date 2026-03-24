@@ -78,14 +78,14 @@ function AudioPlayer({ src, duration, isOp }: { src: string; duration?: number; 
     const fmt = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`
 
     return (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 10px', background: isOp ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)', borderRadius: '12px', minWidth: '180px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 10px', background: isOp ? 'var(--overlay-hover)' : 'var(--overlay-base)', borderRadius: '12px', minWidth: '180px' }}>
             <audio ref={ref} src={src} onTimeUpdate={() => { if (!ref.current) return; setTime(ref.current.currentTime); const d = ref.current.duration || duration || 1; setProgress((ref.current.currentTime / d) * 100) }} onEnded={() => setPlaying(false)} />
-            <button onClick={toggle} style={{ width: '28px', height: '28px', borderRadius: '50%', border: 'none', background: isOp ? 'rgba(255,255,255,0.9)' : 'var(--accent-primary)', color: isOp ? '#1a1a2e' : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
+            <button onClick={toggle} style={{ width: '28px', height: '28px', borderRadius: '50%', border: 'none', background: isOp ? 'var(--text-primary)' : 'var(--accent-primary)', color: isOp ? 'var(--bg-primary)' : 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
                 {playing ? <Pause size={12} /> : <Play size={12} style={{ marginLeft: '1px' }} />}
             </button>
             <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ height: '3px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${progress}%`, background: isOp ? 'white' : 'var(--accent-primary)', borderRadius: '2px', transition: 'width 0.1s' }} />
+                <div style={{ height: '3px', background: 'var(--overlay-hover)', borderRadius: '2px', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${progress}%`, background: isOp ? 'var(--text-primary)' : 'var(--accent-primary)', borderRadius: '2px', transition: 'width 0.1s' }} />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', marginTop: '3px', opacity: 0.5 }}>
                     <span>{fmt(time)}</span><span>{fmt(duration || 0)}</span>
@@ -102,7 +102,7 @@ function Media({ msg }: { msg: ChatMessage }) {
     if (msg.mediaType === 'voice') return <AudioPlayer src={msg.mediaUrl} duration={msg.duration || 0} isOp={isOp} />
     if (msg.mediaType === 'video') return <video src={msg.mediaUrl} controls style={{ maxWidth: '100%', borderRadius: '12px', marginBottom: '6px' }} />
     return (
-        <a href={msg.mediaUrl} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 10px', background: 'rgba(255,255,255,0.04)', borderRadius: '10px', textDecoration: 'none', color: 'inherit', marginBottom: '6px', fontSize: '12px' }}>
+        <a href={msg.mediaUrl} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 10px', background: 'var(--overlay-base)', borderRadius: '10px', textDecoration: 'none', color: 'inherit', marginBottom: '6px', fontSize: '12px' }}>
             <Paperclip size={14} /> {msg.fileName || 'Файл'}
         </a>
     )
@@ -112,7 +112,7 @@ function Media({ msg }: { msg: ChatMessage }) {
 
 function TypingDots() {
     return (
-        <div style={{ alignSelf: 'flex-start', background: 'rgba(255,255,255,0.04)', padding: '10px 14px', borderRadius: '16px 16px 16px 4px', display: 'flex', gap: '4px', animation: 'fadeIn .3s' }}>
+        <div style={{ alignSelf: 'flex-start', background: 'var(--overlay-base)', padding: '10px 14px', borderRadius: '16px 16px 16px 4px', display: 'flex', gap: '4px', animation: 'fadeIn .3s' }}>
             {[0, 0.15, 0.3].map((d, i) => <div key={i} style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-primary)', opacity: 0.4, animation: `pulse 1.2s ${d}s infinite` }} />)}
         </div>
     )
@@ -475,7 +475,7 @@ export default function TicketsPage() {
                 {/* Drop overlay */}
                 {isDragging && (
                     <div onDragLeave={() => setIsDragging(false)} onDrop={e => { e.preventDefault(); setIsDragging(false); const f = e.dataTransfer.files[0]; if (f) uploadFile(f) }}
-                        style={{ position: 'fixed', inset: 0, zIndex: 999, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(16px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+                        style={{ position: 'fixed', inset: 0, zIndex: 999, background: 'var(--shadow-base)', backdropFilter: 'blur(16px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-primary)' }}>
                         <div style={{ width: '80px', height: '80px', borderRadius: '24px', background: 'var(--accent-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}><Paperclip size={36} /></div>
                         <div style={{ fontSize: '18px', fontWeight: 800 }}>Отпустите файл</div>
                     </div>
@@ -483,10 +483,10 @@ export default function TicketsPage() {
 
                 {/* ═══ LEFT: Ticket List ═══ */}
                 <div className="col-panel" style={{ width: '300px', flexShrink: 0 }}>
-                    <div style={{ padding: '20px 16px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div style={{ padding: '20px 16px 16px', borderBottom: '1px solid var(--border-light)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                            <h2 style={{ fontSize: '18px', fontWeight: 900, color: 'white', letterSpacing: '-0.02em' }}>Тикеты</h2>
-                            <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', background: 'rgba(255,255,255,0.05)', padding: '3px 8px', borderRadius: '6px' }}>{counts.all}</span>
+                            <h2 style={{ fontSize: '18px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>Тикеты</h2>
+                            <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', background: 'var(--overlay-base)', padding: '3px 8px', borderRadius: '6px' }}>{counts.all}</span>
                         </div>
 
                         {/* Search */}
@@ -516,11 +516,11 @@ export default function TicketsPage() {
                                         <div className="avatar-sm">{(t.client.firstName || '?')[0]}</div>
                                         <div style={{ flex: 1, minWidth: 0 }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
-                                                <span style={{ fontSize: '13px', fontWeight: 700, color: 'white' }}>{t.client.firstName || 'Клиент'}</span>
-                                                <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>{timeAgo(lastMsg?.createdAt || t.createdAt)}</span>
+                                                <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>{t.client.firstName || 'Клиент'}</span>
+                                                <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{timeAgo(lastMsg?.createdAt || t.createdAt)}</span>
                                             </div>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '150px' }}>
+                                                <span style={{ fontSize: '11px', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '150px' }}>
                                                     {lastMsg?.content || '...'}
                                                 </span>
                                                 <span style={{ fontSize: '9px', fontWeight: 800, color: sc.color, background: sc.bg, padding: '2px 6px', borderRadius: '4px', flexShrink: 0 }}>{sc.label}</span>
@@ -531,7 +531,7 @@ export default function TicketsPage() {
                             )
                         })}
                     </div>
-                    <div style={{ padding: '8px 12px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div style={{ padding: '8px 12px', borderTop: '1px solid var(--border-light)' }}>
                         <Pagination currentPage={currentPage} totalPages={Math.ceil(tickets.length / perPage)} onPageChange={setCurrentPage} />
                     </div>
                 </div>
@@ -541,12 +541,12 @@ export default function TicketsPage() {
                     {selectedTicket && clientInfo ? (
                         <>
                             {/* Clean header — name + actions only */}
-                            <div style={{ padding: '14px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                     <div className="avatar-md">{clientInfo.firstName?.[0] || '?'}</div>
                                     <div>
-                                        <div style={{ fontSize: '15px', fontWeight: 800, color: 'white' }}>{clientInfo.firstName || 'Клиент'}</div>
-                                        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)' }}>{clientInfo.firstName || 'Клиент'}</div>
+                                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                             @{clientInfo.username || 'unknown'} <span style={{ opacity: 0.3 }}>•</span> #{tickets.find(t => t.id === selectedTicket)?.number}
                                         </div>
                                     </div>
@@ -571,7 +571,7 @@ export default function TicketsPage() {
                                     const isSys = msg.senderType === 'system'
 
                                     if (isSys) return (
-                                        <div key={msg.id} style={{ alignSelf: 'center', maxWidth: '90%', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', padding: '8px 14px', borderRadius: '10px', fontSize: '11px', color: 'rgba(255,255,255,0.4)', whiteSpace: 'pre-wrap', lineHeight: 1.5, textAlign: 'center' }}>
+                                        <div key={msg.id} style={{ alignSelf: 'center', maxWidth: '90%', background: 'var(--overlay-light)', border: '1px solid var(--overlay-base)', padding: '8px 14px', borderRadius: '10px', fontSize: '11px', color: 'var(--text-secondary)', whiteSpace: 'pre-wrap', lineHeight: 1.5, textAlign: 'center' }}>
                                             {msg.content}
                                         </div>
                                     )
@@ -640,18 +640,18 @@ export default function TicketsPage() {
                                 {editingMessageId && (
                                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', marginBottom: '8px', background: 'rgba(238,43,84,0.06)', borderRadius: '10px', border: '1px solid rgba(238,43,84,0.15)', fontSize: '12px', color: 'var(--accent-primary)' }}>
                                         <span><Edit2 size={12} /> Редактирование</span>
-                                        <button onClick={cancelEdit} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer' }}><X size={14} /></button>
+                                        <button onClick={cancelEdit} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}><X size={14} /></button>
                                     </div>
                                 )}
 
                                 {showTemplateMenu && filteredTemplates.length > 0 && (
                                     <div style={{ position: 'relative' }}>
                                         <div className="template-popup">
-                                            <div style={{ padding: '8px 12px', fontSize: '10px', fontWeight: 800, color: 'var(--accent-primary)', borderBottom: '1px solid rgba(255,255,255,0.05)', letterSpacing: '0.05em' }}>ШАБЛОНЫ</div>
+                                            <div style={{ padding: '8px 12px', fontSize: '10px', fontWeight: 800, color: 'var(--accent-primary)', borderBottom: '1px solid var(--overlay-base)', letterSpacing: '0.05em' }}>ШАБЛОНЫ</div>
                                             {filteredTemplates.slice(0, 6).map(tpl => (
                                                 <div key={tpl.id} onClick={() => insertTemplate(tpl)} className="template-item">
-                                                    <div style={{ fontSize: '12px', fontWeight: 700, color: 'white' }}>{tpl.title}</div>
-                                                    <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tpl.content}</div>
+                                                    <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)' }}>{tpl.title}</div>
+                                                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tpl.content}</div>
                                                 </div>
                                             ))}
                                         </div>
@@ -672,7 +672,7 @@ export default function TicketsPage() {
                                             <button onClick={() => fileRef.current?.click()} className="icon-btn" disabled={!!editingMessageId}><Paperclip size={16} /></button>
                                             <button onClick={toggleRec} className={`icon-btn ${isRecording ? 'recording' : ''}`} disabled={!!editingMessageId}><Mic size={16} /></button>
                                             <button onClick={runDiag} className="icon-btn" title="Диагностика" disabled={!!editingMessageId}><Stethoscope size={16} /></button>
-                                            <div style={{ width: '1px', height: '16px', background: 'rgba(255,255,255,0.08)', margin: '0 4px' }} />
+                                            <div style={{ width: '1px', height: '16px', background: 'var(--overlay-hover)', margin: '0 4px' }} />
                                             <button onClick={() => setIsInternal(!isInternal)} className={`mode-toggle ${isInternal ? 'active' : ''}`} disabled={!!editingMessageId}>
                                                 {isInternal ? '🔒 Заметка' : '📤 Публично'}
                                             </button>
@@ -690,7 +690,7 @@ export default function TicketsPage() {
                     ) : (
                         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', opacity: 0.3 }}>
                             <MessageSquare size={48} strokeWidth={1} />
-                            <span style={{ fontSize: '15px', fontWeight: 700, color: 'white' }}>Выберите тикет</span>
+                            <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>Выберите тикет</span>
                         </div>
                     )}
                 </div>
@@ -700,12 +700,12 @@ export default function TicketsPage() {
                     {clientInfo ? (
                         <div className="custom-scroll" style={{ flex: 1, overflowY: 'auto' }}>
                             {/* Client Profile */}
-                            <div style={{ padding: '20px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                            <div style={{ padding: '20px 16px', borderBottom: '1px solid var(--border-light)' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
                                     <div className="avatar-lg">{clientInfo.firstName?.[0] || '?'}</div>
                                     <div>
-                                        <div style={{ fontSize: '15px', fontWeight: 800, color: 'white' }}>{clientInfo.firstName || 'Клиент'}</div>
-                                        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>@{clientInfo.username || 'unknown'}</div>
+                                        <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)' }}>{clientInfo.firstName || 'Клиент'}</div>
+                                        <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>@{clientInfo.username || 'unknown'}</div>
                                     </div>
                                 </div>
                                 {/* Quick Profile Link */}
@@ -719,15 +719,15 @@ export default function TicketsPage() {
                                     <div className="mini-metric">
                                         <Wallet size={12} style={{ color: '#34d399' }} />
                                         <div>
-                                            <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', fontWeight: 700 }}>Баланс</div>
-                                            <div style={{ fontSize: '15px', fontWeight: 900, color: 'white' }}>{clientInfo.balance.toLocaleString()} ₽</div>
+                                            <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 700 }}>Баланс</div>
+                                            <div style={{ fontSize: '15px', fontWeight: 900, color: 'var(--text-primary)' }}>{clientInfo.balance.toLocaleString()} ₽</div>
                                         </div>
                                     </div>
                                     <div className="mini-metric">
                                         <TrendingUp size={12} style={{ color: 'var(--accent-primary)' }} />
                                         <div>
-                                            <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', fontWeight: 700 }}>Всего</div>
-                                            <div style={{ fontSize: '15px', fontWeight: 900, color: 'white' }}>{totalTx.toLocaleString()} ₽</div>
+                                            <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 700 }}>Всего</div>
+                                            <div style={{ fontSize: '15px', fontWeight: 900, color: 'var(--text-primary)' }}>{totalTx.toLocaleString()} ₽</div>
                                         </div>
                                     </div>
                                 </div>
@@ -741,7 +741,7 @@ export default function TicketsPage() {
 
                             {/* Quick Actions */}
                             <div style={{ padding: '16px' }}>
-                                <div style={{ fontSize: '10px', fontWeight: 900, color: 'rgba(255,255,255,0.25)', letterSpacing: '0.1em', marginBottom: '10px' }}>ИНСТРУМЕНТЫ</div>
+                                <div style={{ fontSize: '10px', fontWeight: 900, color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: '10px' }}>ИНСТРУМЕНТЫ</div>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                                     <button onClick={runDiag} className="tool-btn">
                                         <Stethoscope size={14} /> <span>Диагностика</span> <ChevronRight size={12} className="tool-arrow" />
@@ -757,7 +757,7 @@ export default function TicketsPage() {
 
                             {/* Tags */}
                             <div style={{ padding: '0 16px 16px' }}>
-                                <div style={{ fontSize: '10px', fontWeight: 900, color: 'rgba(255,255,255,0.25)', letterSpacing: '0.1em', marginBottom: '10px' }}>ТЕГИ</div>
+                                <div style={{ fontSize: '10px', fontWeight: 900, color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: '10px' }}>ТЕГИ</div>
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
                                     {JSON.parse(clientInfo.tags || '[]').map((tag: string) => (
                                         <span key={tag} className="tag-chip">
@@ -770,7 +770,7 @@ export default function TicketsPage() {
 
                             {/* VPN Linkage */}
                             <div style={{ padding: '0 16px 16px' }}>
-                                <div style={{ fontSize: '10px', fontWeight: 900, color: 'rgba(255,255,255,0.25)', letterSpacing: '0.1em', marginBottom: '10px' }}>ПРИВЯЗКА VPN (UUID)</div>
+                                <div style={{ fontSize: '10px', fontWeight: 900, color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: '10px' }}>ПРИВЯЗКА VPN (UUID)</div>
                                 <input 
                                     defaultValue={clientInfo.remnawareId || ''} 
                                     onBlur={e => updateRemnaId(e.target.value)}
@@ -786,12 +786,12 @@ export default function TicketsPage() {
                             {/* Recent Transactions */}
                             {(clientInfo.transactions || []).length > 0 && (
                                 <div style={{ padding: '0 16px 16px' }}>
-                                    <div style={{ fontSize: '10px', fontWeight: 900, color: 'rgba(255,255,255,0.25)', letterSpacing: '0.1em', marginBottom: '10px' }}>ИСТОРИЯ</div>
+                                    <div style={{ fontSize: '10px', fontWeight: 900, color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: '10px' }}>ИСТОРИЯ</div>
                                     {(clientInfo.transactions || []).slice(0, 5).map((tx, i) => (
-                                        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                                        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--overlay-base)' }}>
                                             <div>
-                                                <div style={{ fontSize: '12px', fontWeight: 600, color: 'white' }}>{tx.description || (tx.type === 'credit' ? 'Пополнение' : 'Списание')}</div>
-                                                <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>{new Date(tx.createdAt).toLocaleDateString('ru-RU')}</div>
+                                                <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>{tx.description || (tx.type === 'credit' ? 'Пополнение' : 'Списание')}</div>
+                                                <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{new Date(tx.createdAt).toLocaleDateString('ru-RU')}</div>
                                             </div>
                                             <div style={{ fontSize: '13px', fontWeight: 800, color: tx.type === 'credit' ? '#34d399' : '#ee2b54' }}>
                                                 {tx.type === 'credit' ? '+' : '-'}{tx.amount} ₽
@@ -819,19 +819,19 @@ export default function TicketsPage() {
             {/* Microphone Error Modal */}
             {showMicrophoneError && (
                 <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(10px)' }}>
-                    <div style={{ background: 'rgba(30,30,40,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px', padding: '32px', maxWidth: '440px', width: '90%', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.4)' }}>
+                    <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--overlay-hover)', borderRadius: '24px', padding: '32px', maxWidth: '440px', width: '90%', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.4)' }}>
                         <div style={{ width: '64px', height: '64px', borderRadius: '20px', background: 'rgba(238,43,84,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', color: '#ee2b54' }}>
                             <AlertTriangle size={32} />
                         </div>
-                        <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'white', marginBottom: '12px' }}>Микрофон недоступен</h3>
-                        <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, marginBottom: '24px' }}>
+                        <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '12px' }}>Микрофон недоступен</h3>
+                        <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '24px' }}>
                             Веб-браузеры разрешают доступ к микрофону только через безопасное соединение (HTTPS) или на localhost.<br/><br/>
                             <b>Для теста в Google Chrome:</b><br/>
                             Перейдите в <code>chrome://flags/#unsafely-treat-insecure-origin-as-secure</code><br/>
                             и добавьте <code>http://{window.location.host}</code> в список разрешенных.
                         </p>
                         <button onClick={() => setShowMicrophoneError(false)} 
-                            style={{ width: '100%', padding: '12px', background: 'var(--accent-gradient)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 800, cursor: 'pointer', transition: 'all .2s' }}>
+                            style={{ width: '100%', padding: '12px', background: 'var(--accent-gradient)', color: 'var(--text-primary)', border: 'none', borderRadius: '12px', fontWeight: 800, cursor: 'pointer', transition: 'all .2s' }}>
                             Понятно
                         </button>
                     </div>
@@ -845,8 +845,8 @@ export default function TicketsPage() {
                 /* ─── Panels ─── */
                 .col-panel {
                     display: flex; flex-direction: column;
-                    background: rgba(20, 20, 28, 0.85);
-                    border: 1px solid rgba(255,255,255,0.06);
+                    background: var(--bg-card);
+                    border: 1px solid var(--border-color);
                     border-radius: 20px;
                     overflow: hidden;
                     backdrop-filter: blur(12px);
@@ -854,22 +854,22 @@ export default function TicketsPage() {
 
                 /* ─── Search ─── */
                 .search-input {
-                    width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
-                    border-radius: 10px; padding: 9px 10px 9px 30px; font-size: 12px; color: white; outline: none;
+                    width: 100%; background: var(--bg-input); border: 1px solid var(--border-color);
+                    border-radius: 10px; padding: 9px 10px 9px 30px; font-size: 12px; color: var(--text-primary); outline: none;
                     transition: border-color .2s;
                 }
-                .search-input:focus { border-color: rgba(238,43,84,0.3); }
-                .search-input::placeholder { color: rgba(255,255,255,0.25); }
+                .search-input:focus { border-color: var(--accent-primary); }
+                .search-input::placeholder { color: var(--text-muted); }
 
                 /* ─── Tabs ─── */
-                .tab-bar { display: flex; gap: 2px; background: rgba(0,0,0,0.2); padding: 3px; border-radius: 10px; }
+                .tab-bar { display: flex; gap: 2px; background: var(--bg-tertiary); padding: 3px; border-radius: 10px; }
                 .tab-btn {
                     flex: 1; padding: 7px 4px; border: none; border-radius: 8px; font-size: 11px; font-weight: 700;
-                    color: rgba(255,255,255,0.35); background: transparent; cursor: pointer;
+                    color: var(--text-muted); background: transparent; cursor: pointer;
                     display: flex; align-items: center; justify-content: center; gap: 4px; transition: all .2s;
                 }
-                .tab-btn.active { background: rgba(255,255,255,0.08); color: white; }
-                .tab-count { font-size: 9px; background: rgba(255,255,255,0.06); padding: 1px 5px; border-radius: 4px; }
+                .tab-btn.active { background: var(--bg-card-hover); color: var(--text-primary); }
+                .tab-count { font-size: 9px; background: var(--overlay-base); padding: 1px 5px; border-radius: 4px; }
                 .tab-btn.active .tab-count { background: var(--accent-primary); color: white; }
 
                 /* ─── Ticket rows ─── */
@@ -877,8 +877,8 @@ export default function TicketsPage() {
                     padding: 12px; border-radius: 14px; cursor: pointer; margin-bottom: 4px;
                     transition: all .2s; border: 1px solid transparent;
                 }
-                .ticket-row:hover { background: rgba(255,255,255,0.03); }
-                .ticket-row.selected { background: rgba(238,43,84,0.06); border-color: rgba(238,43,84,0.15); }
+                .ticket-row:hover { background: var(--overlay-light); }
+                .ticket-row.selected { background: var(--border-glow); border-color: var(--border-glow); }
 
                 /* ─── Avatars ─── */
                 .avatar-sm {
@@ -920,41 +920,41 @@ export default function TicketsPage() {
                     background: var(--accent-gradient); color: white;
                 }
                 .msg-bubble.cl {
-                    background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.9);
-                    border: 1px solid rgba(255,255,255,0.06);
+                    background: var(--bg-card); color: var(--text-primary);
+                    border: 1px solid var(--border-color);
                 }
                 .msg-bubble.internal {
                     background: rgba(251,191,36,0.08) !important;
                     border: 1px solid rgba(251,191,36,0.2) !important;
-                    color: rgba(255,255,255,0.9) !important;
+                    color: var(--text-primary) !important;
                 }
 
                 /* ─── Input bar ─── */
                 .input-bar {
-                    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+                    background: var(--bg-input); border: 1px solid var(--border-color);
                     border-radius: 16px; padding: 8px; transition: all .2s;
                 }
-                .input-bar:focus-within { border-color: rgba(255,255,255,0.12); }
+                .input-bar:focus-within { border-color: var(--accent-primary); }
                 .input-bar.internal { border-color: rgba(251,191,36,0.3); background: rgba(251,191,36,0.03); }
                 .msg-textarea {
                     width: 100%; background: transparent; border: none; outline: none;
-                    color: white; font-size: 14px; resize: none; padding: 6px 4px;
+                    color: var(--text-primary); font-size: 14px; resize: none; padding: 6px 4px;
                     min-height: 36px; max-height: 120px; font-family: inherit;
                 }
-                .msg-textarea::placeholder { color: rgba(255,255,255,0.25); }
+                .msg-textarea::placeholder { color: var(--text-muted); }
 
                 .icon-btn {
                     width: 32px; height: 32px; border-radius: 8px; border: none;
-                    background: transparent; color: rgba(255,255,255,0.35); cursor: pointer;
+                    background: transparent; color: var(--text-muted); cursor: pointer;
                     display: flex; align-items: center; justify-content: center; transition: all .15s;
                 }
-                .icon-btn:hover { background: rgba(255,255,255,0.06); color: white; }
+                .icon-btn:hover { background: var(--overlay-base); color: var(--text-primary); }
                 .icon-btn.recording { color: var(--accent-primary); animation: pulse-red 1s infinite; }
 
                 .mode-toggle {
                     padding: 4px 10px; border-radius: 6px; border: none;
                     font-size: 10px; font-weight: 800; cursor: pointer; transition: all .15s;
-                    background: transparent; color: rgba(255,255,255,0.35);
+                    background: transparent; color: var(--text-muted);
                 }
                 .mode-toggle.active { background: rgba(251,191,36,0.1); color: #fbbf24; }
 
@@ -971,26 +971,26 @@ export default function TicketsPage() {
                 .mini-metric {
                     display: flex; align-items: center; gap: 8px;
                     padding: 12px; border-radius: 12px;
-                    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
+                    background: var(--bg-tertiary); border: 1px solid var(--border-color);
                 }
                 .tool-btn {
                     width: 100%; padding: 10px 12px; border-radius: 10px;
-                    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
-                    color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 600;
+                    background: var(--bg-tertiary); border: 1px solid var(--border-color);
+                    color: var(--text-secondary); font-size: 12px; font-weight: 600;
                     display: flex; align-items: center; gap: 8px; cursor: pointer; transition: all .2s;
                 }
                 .tool-btn span { flex: 1; text-align: left; }
-                .tool-btn:hover { background: rgba(255,255,255,0.06); border-color: rgba(238,43,84,0.2); color: white; }
+                .tool-btn:hover { background: var(--bg-card-hover); border-color: var(--accent-primary); color: var(--text-primary); }
                 .tool-arrow { opacity: 0; transition: all .2s; margin-left: auto; }
                 .tool-btn:hover .tool-arrow { opacity: 0.5; transform: translateX(2px); }
 
                 .tx-input {
                     width: 80px; padding: 7px 10px; border-radius: 8px; font-size: 12px; font-weight: 700;
-                    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
-                    color: white; outline: none; font-family: inherit;
+                    background: var(--bg-input); border: 1px solid var(--border-color);
+                    color: var(--text-primary); outline: none; font-family: inherit;
                 }
-                .tx-input::placeholder { color: rgba(255,255,255,0.2); }
-                .tx-input:focus { border-color: rgba(238,43,84,0.3); }
+                .tx-input::placeholder { color: var(--text-muted); }
+                .tx-input:focus { border-color: var(--accent-primary); }
                 .tx-input::-webkit-inner-spin-button, .tx-input::-webkit-outer-spin-button { -webkit-appearance: none; }
 
                 .balance-btn {
@@ -1009,14 +1009,14 @@ export default function TicketsPage() {
                     border: 1px solid rgba(238,43,84,0.15);
                 }
                 .tag-input {
-                    width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
-                    border-radius: 8px; padding: 6px 10px; font-size: 11px; color: white; outline: none;
+                    width: 100%; background: var(--bg-input); border: 1px solid var(--border-color);
+                    border-radius: 8px; padding: 6px 10px; font-size: 11px; color: var(--text-primary); outline: none;
                 }
-                .tag-input::placeholder { color: rgba(255,255,255,0.2); }
+                .tag-input::placeholder { color: var(--text-muted); }
 
                 /* ─── Scrollbar ─── */
                 .custom-scroll::-webkit-scrollbar { width: 3px; }
-                .custom-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 10px; }
+                .custom-scroll::-webkit-scrollbar-thumb { background: var(--overlay-base); border-radius: 10px; }
 
                 /* ─── Animations ─── */
                 @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
@@ -1026,11 +1026,11 @@ export default function TicketsPage() {
                 .msg-actions { position: absolute; display: flex; flex-direction: column; gap: 2px; z-index: 10; }
                 .msg-action-btn {
                     width: 28px; height: 28px; border-radius: 8px; border: none;
-                    background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.4);
+                    background: var(--overlay-base); color: var(--text-muted);
                     display: flex; align-items: center; justify-content: center;
                     cursor: pointer; transition: all .15s; backdrop-filter: blur(8px);
                 }
-                .msg-action-btn:hover { background: rgba(255,255,255,0.1); color: white; }
+                .msg-action-btn:hover { background: var(--overlay-hover); color: var(--text-primary); }
                 .msg-action-btn.delete:hover { background: rgba(238,43,84,0.15); color: #ee2b54; }
 
                 .media-grid { display: grid; gap: 3px; border-radius: 12px; overflow: hidden; margin-bottom: 6px; }
@@ -1042,38 +1042,38 @@ export default function TicketsPage() {
                 .media-grid-item:hover { filter: brightness(1.1); }
 
                 .template-menu {
-                    background: rgba(20,20,28,0.95); border: 1px solid rgba(255,255,255,0.08);
+                    background: var(--bg-secondary); border: 1px solid var(--border-color);
                     border-radius: 14px; margin-bottom: 8px; overflow: hidden;
                     backdrop-filter: blur(16px); max-height: 240px; overflow-y: auto;
-                    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+                    box-shadow: var(--shadow-md);
                 }
                 .template-popup {
-                    background: rgba(20,20,28,0.97); border: 1px solid rgba(255,255,255,0.1);
+                    background: var(--bg-secondary); border: 1px solid var(--border-color);
                     border-radius: 14px; overflow: hidden;
                     backdrop-filter: blur(20px); max-height: 260px; overflow-y: auto;
-                    box-shadow: 0 -8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(238,43,84,0.1);
+                    box-shadow: var(--shadow-sm), 0 0 0 1px rgba(238,43,84,0.1);
                     margin-bottom: 6px;
                     animation: slideUp .2s ease-out;
                 }
-                .template-item { padding: 10px 12px; cursor: pointer; transition: all .15s; border-bottom: 1px solid rgba(255,255,255,0.03); }
-                .template-item:hover { background: rgba(238,43,84,0.06); }
+                .template-item { padding: 10px 12px; cursor: pointer; transition: all .15s; border-bottom: 1px solid var(--border-light); }
+                .template-item:hover { background: var(--bg-tertiary); }
                 .template-item:last-child { border-bottom: none; }
 
                 .msg-context-bar {
                     display: flex; gap: 4px; padding: 4px;
-                    background: rgba(20,20,28,0.95); border: 1px solid rgba(255,255,255,0.1);
+                    background: var(--bg-secondary); border: 1px solid var(--border-color);
                     border-radius: 10px; backdrop-filter: blur(16px);
-                    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+                    box-shadow: var(--shadow-sm);
                     animation: fadeIn .15s ease-out;
                 }
                 .ctx-btn {
                     display: flex; align-items: center; gap: 4px;
                     padding: 6px 10px; border-radius: 7px; border: none;
                     font-size: 11px; font-weight: 700; cursor: pointer;
-                    background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.6);
+                    background: var(--overlay-base); color: var(--text-muted);
                     transition: all .15s;
                 }
-                .ctx-btn:hover { background: rgba(255,255,255,0.1); color: white; }
+                .ctx-btn:hover { background: var(--overlay-hover); color: var(--text-primary); }
                 .ctx-btn.delete { color: rgba(238,43,84,0.7); }
                 .ctx-btn.delete:hover { background: rgba(238,43,84,0.12); color: #ee2b54; }
 

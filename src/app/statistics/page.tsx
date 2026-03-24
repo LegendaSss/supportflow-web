@@ -231,8 +231,11 @@ export default function StatisticsPage() {
     }, [period])
 
     if (loading || !data) return (
-        <div style={{ padding: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
-            <Activity size={20} className="pulse-animation" style={{ marginRight: '12px' }} /> Загрузка аналитики...
+        <div style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
+                {[...Array(4)].map((_, i) => <div key={i} className="skeleton" style={{ height: '120px', borderRadius: '24px' }} />)}
+            </div>
+            <div className="skeleton" style={{ height: '400px', borderRadius: '24px' }} />
         </div>
     )
 
@@ -363,7 +366,7 @@ export default function StatisticsPage() {
                         <Users size={20} />
                     </div>
                     <div>
-                        <div style={{ fontSize: '18px', fontWeight: 800 }}>{84}%</div>
+                        <div style={{ fontSize: '18px', fontWeight: 800 }}>—%</div>
                         <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Retention Rate</div>
                     </div>
                 </div>
