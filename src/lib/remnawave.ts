@@ -1,3 +1,6 @@
+// Bypass strict SSL for internal/self-signed VPN panel certificates
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 export class RemnaWaveService {
     private baseUrl: string;
     private apiKey: string;
