@@ -21,7 +21,7 @@ export class RemnaWaveService {
         const headers: Record<string, string> = {
             "Authorization": `Bearer ${this.apiKey}`,
             "X-Api-Key": this.apiKey,
-            "User-Agent": "SupportFlow-Native/1.0",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
             "Accept": "application/json",
             ...((options.headers as Record<string, string>) || {})
         };
