@@ -9,13 +9,26 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         const { id: clientId } = await params
         if (!clientId) return NextResponse.json({ error: 'Missing client id' }, { status: 400 })
 
-        const client = await prisma!.client.findUnique({
+        let client = await prisma!.client.findUnique({
             where: { id: clientId }
         })
         if (!client) return NextResponse.json({ error: 'Client not found' }, { status: 404 })
+
+        let rwUser = null;
+        if (client.remnawareId) {
+            rwUser = await remnawave.getUserByUuid(client.remnawareId)
+        } else if (client.telegramId) {
+            rwUser = await remnawave.getUserByTelegramId(client.telegramId)
+            if (rwUser && rwUser.uuid) {
+                client = await prisma!.client.update({
+                    where: { id: clientId },
+                    data: { remnawareId: rwUser.uuid }
+                })
+            }
+        }
+
         if (!client.remnawareId) return NextResponse.json({ error: 'Client not linked to VPN' }, { status: 400 })
 
-        const rwUser = await remnawave.getUserByUuid(client.remnawareId)
         if (!rwUser) {
             return NextResponse.json({ error: 'Failed to fetch VPN status' }, { status: 500 })
         }

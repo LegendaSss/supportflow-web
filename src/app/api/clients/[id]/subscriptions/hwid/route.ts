@@ -14,11 +14,25 @@ export async function POST(
         const { action, limit } = body;
 
         // Get client
-        const client = await prisma!.client.findUnique({
+        let client = await prisma!.client.findUnique({
             where: { id: clientId }
         });
 
-        if (!client || !client.remnawareId) {
+        if (!client) {
+            return NextResponse.json({ error: 'Client not found' }, { status: 404 });
+        }
+
+        if (!client.remnawareId && client.telegramId) {
+            const rwUser = await remnawave.getUserByTelegramId(client.telegramId);
+            if (rwUser && rwUser.uuid) {
+                client = await prisma!.client.update({
+                    where: { id: clientId },
+                    data: { remnawareId: rwUser.uuid }
+                });
+            }
+        }
+
+        if (!client.remnawareId) {
             return NextResponse.json({ error: 'Client not found or has no active RemnaWave connection' }, { status: 404 });
         }
 
