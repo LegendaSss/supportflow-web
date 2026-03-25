@@ -1,0 +1,157 @@
+image: docker:24-cli
+
+stages:
+  - validate
+  - build
+  - deploy
+
+variables:
+  DOCKER_TLS_CERTDIR: ""
+  COMPOSE_PROJECT_NAME: supportflow-web
+  DEPLOY_DIR: /root/app
+
+# ---------------------------------------------------------------------------
+# Stage: validate (dev only)
+# ---------------------------------------------------------------------------
+validate:dev:
+  stage: validate
+  tags: [supportflow, web, dev]
+  script:
+    - echo "Checking required CI/CD variables for dev..."
+    - |
+      MISSING=""
+      for VAR in TELEGRAM_BOT_TOKEN REMNAWAVE_URL REMNAWAVE_API_KEY POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB; do
+        eval "VAL=\$$VAR"
+        if [ -z "$VAL" ]; then
+          MISSING="$MISSING $VAR"
+        fi
+      done
+      if [ -n "$MISSING" ]; then
+        echo "ERROR: Missing required CI/CD variables for dev:$MISSING"
+        exit 1
+      fi
+    - echo "All required dev variables present."
+  environment:
+    name: dev
+    deployment_tier: development
+  rules:
+    - if: $CI_COMMIT_BRANCH == "dev"
+
+# ---------------------------------------------------------------------------
+# Stage: build (dev only)
+# ---------------------------------------------------------------------------
+build:dev:
+  stage: build
+  tags: [supportflow, web, dev]
+  script:
+    - cd "${DEPLOY_DIR}/web"
+    - docker build
+        -t "${COMPOSE_PROJECT_NAME}:${CI_COMMIT_SHORT_SHA}"
+        -t "${COMPOSE_PROJECT_NAME}:latest"
+        .
+  rules:
+    - if: $CI_COMMIT_BRANCH == "dev"
+      changes:
+        - Dockerfile
+        - package.json
+        - package-lock.json
+        - prisma/**/*
+        - src/**/*
+        - public/**/*
+
+# ---------------------------------------------------------------------------
+# Stage: deploy (dev only)
+# ---------------------------------------------------------------------------
+deploy:dev:
+  stage: deploy
+  tags: [supportflow, web, dev]
+  script:
+    - mkdir -p "${DEPLOY_DIR}/web"
+
+    # --- Generate .env from CI/CD variables ---
+    - |
+      echo "Generating .env from CI/CD variables..."
+      cat > "${DEPLOY_DIR}/.env" << EOF
+      POSTGRES_USER=${POSTGRES_USER}
+      POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      POSTGRES_DB=${POSTGRES_DB}
+      DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public
+      TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      VPN_BOT_TOKEN=${VPN_BOT_TOKEN:-}
+      REMNAWAVE_URL=${REMNAWAVE_URL}
+      REMNAWAVE_PUBLIC_URL=${REMNAWAVE_PUBLIC_URL:-${REMNAWAVE_URL}}
+      REMNAWAVE_API_KEY=${REMNAWAVE_API_KEY}
+      JWT_SECRET=${JWT_SECRET:-supportflow-unlok-secret-2026}
+      EOF
+      echo ".env generated."
+
+    # --- Sync web source code ---
+    - |
+      echo "Syncing web source to ${DEPLOY_DIR}/web..."
+      rsync -a --delete \
+        --exclude='.git' \
+        --exclude='node_modules' \
+        --exclude='.next' \
+        ./ "${DEPLOY_DIR}/web/"
+      echo "Source synced."
+
+    # --- Copy docker-compose ---
+    - cp docker-compose.yml "${DEPLOY_DIR}/docker-compose.yml"
+
+    # --- Deploy ---
+    - cd "${DEPLOY_DIR}"
+    - docker-compose build web
+    - docker-compose up -d --remove-orphans
+
+    # --- Run Prisma migrations ---
+    - |
+      echo "Running Prisma migrations..."
+      docker-compose exec -T web npx prisma db push --accept-data-loss 2>/dev/null || \
+      docker-compose exec -T web npx prisma migrate deploy 2>/dev/null || \
+      echo "Note: Prisma migration skipped (standalone mode)"
+
+    # --- Health check ---
+    - |
+      echo "Waiting for web to become healthy..."
+      TRIES=0
+      MAX_TRIES=20
+      while [ $TRIES -lt $MAX_TRIES ]; do
+        if curl -s -o /dev/null -w "%{http_code}" http://localhost:3000 | grep -qE "200|301|302"; then
+          echo "Web is up and responding!"
+          break
+        fi
+        TRIES=$((TRIES + 1))
+        echo "  Attempt $TRIES/$MAX_TRIES..."
+        sleep 5
+      done
+      if [ $TRIES -ge $MAX_TRIES ]; then
+        echo "WARNING: Web did not respond within timeout. Check logs:"
+        docker-compose logs --tail=30 web
+        exit 1
+      fi
+
+    - echo "Dev deployment complete."
+  environment:
+    name: dev
+    url: http://93.183.83.53:3000
+    deployment_tier: development
+  rules:
+    - if: $CI_COMMIT_BRANCH == "dev"
+
+# ---------------------------------------------------------------------------
+# Rollback (manual)
+# ---------------------------------------------------------------------------
+rollback:dev:
+  stage: deploy
+  tags: [supportflow, web, dev]
+  script:
+    - cd "${DEPLOY_DIR}"
+    - docker-compose down
+    - docker-compose up -d
+  environment:
+    name: dev
+    action: stop
+  rules:
+    - if: $CI_COMMIT_BRANCH == "dev"
+      when: manual
+  allow_failure: true
