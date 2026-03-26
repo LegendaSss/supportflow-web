@@ -124,12 +124,9 @@ export class RemnaWaveService {
     }
 
     async updateUser(uuid: string, data: any) {
-        return this.request('/api/users', {
+        return this.request(`/api/users`, {
             method: 'PATCH',
-            body: JSON.stringify({
-                uuid: uuid,
-                ...data
-            }),
+            body: JSON.stringify({ uuid, ...data })
         });
     }
 
