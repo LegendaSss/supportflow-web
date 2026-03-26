@@ -22,14 +22,24 @@ export async function POST(
             where: { id: clientId }
         });
 
-        if (!client || !client.remnawareId) {
-            return NextResponse.json({ error: 'Client not found or has no active RemnaWave connection' }, { status: 404 });
+        let rwUser = null;
+
+        if (client.remnawareId) {
+            try { rwUser = await remnawave.getUserByUuid(client.remnawareId); } catch(e){}
         }
 
-        const rwUser = await remnawave.getUserByUuid(client.remnawareId);
+        if (!rwUser && client.telegramId) {
+            rwUser = await remnawave.getUserByTelegramId(client.telegramId);
+            if (rwUser && rwUser.uuid) {
+                await prisma!.client.update({
+                    where: { id: clientId },
+                    data: { remnawareId: rwUser.uuid }
+                });
+            }
+        }
 
         if (!rwUser) {
-            return NextResponse.json({ error: 'User does not exist in RemnaWave' }, { status: 404 });
+            return NextResponse.json({ error: 'Client not found or has no active RemnaWave connection' }, { status: 404 });
         }
 
         const updateData: any = {};

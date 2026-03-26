@@ -13,12 +13,23 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
             where: { id: clientId }
         })
         if (!client) return NextResponse.json({ error: 'Client not found' }, { status: 404 })
-        if (!client.remnawareId) return NextResponse.json({ error: 'Client not linked to VPN' }, { status: 400 })
+        let rwUser = null;
 
-        const rwUser = await remnawave.getUserByUuid(client.remnawareId)
-        if (!rwUser) {
-            return NextResponse.json({ error: 'Failed to fetch VPN status' }, { status: 500 })
+        if (client.remnawareId) {
+            try { rwUser = await remnawave.getUserByUuid(client.remnawareId); } catch(e){}
         }
+
+        if (!rwUser && client.telegramId) {
+            rwUser = await remnawave.getUserByTelegramId(client.telegramId);
+            if (rwUser && rwUser.uuid) {
+                await prisma!.client.update({
+                    where: { id: clientId },
+                    data: { remnawareId: rwUser.uuid }
+                });
+            }
+        }
+
+        if (!rwUser) return NextResponse.json({ error: 'Client not linked to VPN' }, { status: 400 })
 
         // Construct Diagnostic Report
         const limitBytes = rwUser.trafficLimitBytes || 0
