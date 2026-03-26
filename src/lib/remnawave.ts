@@ -96,6 +96,18 @@ export class RemnaWaveService {
         return user;
     }
 
+    private cachedSquadId: string | null = null;
+
+    async getDefaultSquadId(): Promise<string[]> {
+        if (this.cachedSquadId) return [this.cachedSquadId];
+        const squads = await this.getSquads();
+        if (squads && squads.length > 0) {
+            this.cachedSquadId = squads[0].uuid;
+            return [this.cachedSquadId as string];
+        }
+        return [];
+    }
+
     async getSquads() {
         const squads = await this.request('/api/internal-squads');
         if (squads && Array.isArray(squads.internalSquads)) {
@@ -154,7 +166,7 @@ export class RemnaWaveService {
 
         // If base is NOT the same as our panel API URL, assume it's a dedicated sub domain
         // Dedicated sub domains typically don't need /api/sub/ prefix
-        if (base && base !== this.baseUrl && !base.includes('go.ooo.limo')) {
+        if (base && base !== this.baseUrl) {
             return `${base.replace(/\/$/, '')}/${finalShortUuid}`;
         }
 

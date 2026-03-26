@@ -3,9 +3,13 @@ export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { remnawave } from '@/lib/remnawave';
+import { checkVpnAuth } from '../auth';
 
 // GET /api/vpn/subscription?telegramId=123
 export async function GET(req: Request) {
+    const authError = checkVpnAuth(req);
+    if (authError) return authError;
+
     try {
         const { searchParams } = new URL(req.url);
         const telegramId = searchParams.get('telegramId');

@@ -4,9 +4,13 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { remnawave } from '@/lib/remnawave';
 import { logActivity } from '@/lib/logger';
+import { checkVpnAuth } from '../auth';
 
 // POST /api/vpn/purchase
 export async function POST(req: Request) {
+    const authError = checkVpnAuth(req);
+    if (authError) return authError;
+
     try {
         const { telegramId, tariffId } = await req.json();
 
@@ -36,7 +40,7 @@ export async function POST(req: Request) {
         }
 
         // 3. Выполняем транзакцию в БД (списание средств)
-        await prisma!.$transaction(async (tx) => {
+        await prisma!.$transaction(async (tx: any) => {
             await tx.client.update({
                 where: { id: client.id },
                 data: { balance: client.balance - tariff.price }
@@ -54,7 +58,7 @@ export async function POST(req: Request) {
         });
 
         // 4. Интеграция с RemnaWave (продление или создание)
-        const squadIds = ['a085ea6f-70bc-43f9-af6b-c7255eb24155'];
+        const squadIds = await remnawave.getDefaultSquadId();
 
         // Проверяем, есть ли уже юзер в RemnaWave по telegramId
         let rwUser = await remnawave.getUserByTelegramId(telegramId.toString());

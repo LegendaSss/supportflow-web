@@ -2,10 +2,14 @@ export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
 import { remnawave } from '@/lib/remnawave';
+import { checkVpnAuth } from '../auth';
 
 // POST /api/vpn/admin-give
 // Body: { telegramId: number, days: number, description: string }
 export async function POST(req: Request) {
+    const authError = checkVpnAuth(req);
+    if (authError) return authError;
+
     try {
         const { telegramId, days, description } = await req.json();
 
@@ -18,20 +22,23 @@ export async function POST(req: Request) {
 
         // First, check if user exists
         let user = await remnawave.getUserByTelegramId(telegramId);
+        const squadIds = await remnawave.getDefaultSquadId();
 
         if (!user) {
             // Create user if not exists
-            user = await remnawave.createUser(telegramId, 0, expireAt, description, ['a085ea6f-70bc-43f9-af6b-c7255eb24155']);
+            user = await remnawave.createUser(telegramId, 0, expireAt, description, squadIds);
         } else {
-            // Update existing user (we assume there's an update method, but for now we'll just re-push? 
-            // In remnawave.ts we don't have an update user, let's keep it simple for now and just issue via createUser which handles collisions if API allows)
-            // Wait, remnawave_core.py says if user exists it updates. Let's assume the API behaves similarly.
-            user = await remnawave.createUser(telegramId, 0, expireAt, description, ['a085ea6f-70bc-43f9-af6b-c7255eb24155']);
-        }
+            // Update existing user
+            const currentExpire = new Date(user.expireAt);
+            const baseDate = currentExpire > new Date() ? currentExpire : new Date();
+            baseDate.setDate(baseDate.getDate() + days);
 
-        // Link specific squad
-        const squadIds = ['a085ea6f-70bc-43f9-af6b-c7255eb24155'];
-        await remnawave.linkSquadsToUser(user.uuid, squadIds);
+            user = await remnawave.updateUser(user.uuid, {
+                expireAt: baseDate.toISOString(),
+                description: description,
+                activeInternalSquads: squadIds
+            });
+        }
 
         const subUrl = await remnawave.getUserSubscriptionUrl(user.uuid, process.env.REMNAWAVE_PUBLIC_URL || '');
 

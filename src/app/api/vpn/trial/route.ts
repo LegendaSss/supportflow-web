@@ -3,10 +3,14 @@ export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { remnawave } from '@/lib/remnawave';
+import { checkVpnAuth } from '../auth';
 
 // Этот эндпоинт будет вызывать Telegram-бот (или сам сайт)
 // POST /api/vpn/trial
 export async function POST(req: Request) {
+    const authError = checkVpnAuth(req);
+    if (authError) return authError;
+
     try {
         const { telegramId } = await req.json();
 
@@ -28,8 +32,8 @@ export async function POST(req: Request) {
             });
         }
 
-        // 2. Используем фиксированный сквад (сервер)
-        const squadIds = ['a085ea6f-70bc-43f9-af6b-c7255eb24155'];
+        // 2. Используем динамический сквад
+        const squadIds = await remnawave.getDefaultSquadId();
 
         // 3. Создаем юзера в RemnaWave (Тестово на 3 дня, например)
         const expireDate = new Date();
