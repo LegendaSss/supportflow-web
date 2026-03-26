@@ -23,12 +23,11 @@ export async function POST(
         });
 
         let rwUser = null;
-
-        if (client.remnawareId) {
+        if (client?.remnawareId) {
             try { rwUser = await remnawave.getUserByUuid(client.remnawareId); } catch(e){}
         }
 
-        if (!rwUser && client.telegramId) {
+        if (!rwUser && client?.telegramId) {
             rwUser = await remnawave.getUserByTelegramId(client.telegramId);
             if (rwUser && rwUser.uuid) {
                 await prisma!.client.update({
@@ -38,7 +37,7 @@ export async function POST(
             }
         }
 
-        if (!rwUser) {
+        if (!client || !rwUser) {
             return NextResponse.json({ error: 'Client not found or has no active RemnaWave connection' }, { status: 404 });
         }
 

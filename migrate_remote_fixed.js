@@ -4,11 +4,11 @@ const conn = new Client();
 console.log('Connecting to Timeweb server (93.183.83.53) for final attempt...');
 
 conn.on('ready', () => {
-    console.log('✅ Connection ready. Executing migration with explicit path...');
+    console.log('✅ Connection ready. Rebuilding web container and pushing schema...');
     
-    // Attempting to run in /app directory where Prisma should be
-    // We also set DATABASE_URL directly in the bash command inside the container
-    const cmd = 'docker exec -w /app -e DATABASE_URL="postgresql://postgres:hFaNk+iB2GBi4h@db:5432/supportflow?schema=public" app-web-1 npx prisma migrate deploy';
+    // 1. Build & Up to ensure latest files are in container
+    // 2. Db Push with explicit URL to sync database
+    const cmd = 'cd /root/app && docker-compose build web && docker-compose up -d && docker exec -w /app app-web-1 npx prisma db push --url="postgresql://postgres:hFaNk+iB2GBi4h@db:5432/supportflow?schema=public" --accept-data-loss';
     
     conn.exec(cmd, (err, stream) => {
         if (err) {

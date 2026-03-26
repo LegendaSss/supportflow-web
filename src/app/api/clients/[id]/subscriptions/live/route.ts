@@ -23,7 +23,7 @@ export async function GET(
         let rwUser = null;
 
         // Try to fetch by remnawareId first
-        if (client.remnawareId) {
+        if (client?.remnawareId) {
             try {
                 rwUser = await remnawave.getUserByUuid(client.remnawareId);
             } catch (e) {
@@ -32,7 +32,7 @@ export async function GET(
         }
 
         // Fallback to fetch by telegramId if no UUID was stored or found
-        if (!rwUser && client.telegramId) {
+        if (!rwUser && client?.telegramId) {
             rwUser = await remnawave.getUserByTelegramId(client.telegramId);
             // If found, update the DB so we don't have to search next time
             if (rwUser && rwUser.uuid) {

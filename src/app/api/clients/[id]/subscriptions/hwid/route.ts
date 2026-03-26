@@ -20,11 +20,11 @@ export async function POST(
 
         let rwUser = null;
 
-        if (client.remnawareId) {
+        if (client?.remnawareId) {
             try { rwUser = await remnawave.getUserByUuid(client.remnawareId); } catch(e){}
         }
 
-        if (!rwUser && client.telegramId) {
+        if (!rwUser && client?.telegramId) {
             rwUser = await remnawave.getUserByTelegramId(client.telegramId);
             if (rwUser && rwUser.uuid) {
                 await prisma!.client.update({
@@ -34,19 +34,19 @@ export async function POST(
             }
         }
 
-        if (!rwUser) {
-            return NextResponse.json({ error: 'Client not found or has no active RemnaWave connection' }, { status: 404 });
+        if (!client || !rwUser) {
+            return NextResponse.json({ error: 'Client not found or has no active VPN connection' }, { status: 404 });
         }
 
         if (action === 'reset') {
-            await remnawave.resetUserHwid(client.remnawareId);
+            await remnawave.resetUserHwid(rwUser.uuid);
             return NextResponse.json({ success: true, message: 'HWID reset successfully' });
         } else if (action === 'set_limit') {
             const limitVal = parseInt(limit);
             if (isNaN(limitVal)) {
                 return NextResponse.json({ error: 'Invalid limit' }, { status: 400 });
             }
-            await remnawave.updateUser(client.remnawareId, { hwidDeviceLimit: limitVal === 0 ? null : limitVal });
+            await remnawave.updateUser(rwUser.uuid, { hwidDeviceLimit: limitVal === 0 ? null : limitVal });
             return NextResponse.json({ success: true, message: 'HWID limit updated' });
         } else {
             return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
