@@ -179,6 +179,7 @@ model Broadcast {
   content       String
   mediaUrl      String?
   mediaType     String?   // photo, video
+  mediaFileId   String?   // Telegram file_id for re-use
   status        String   @default("draft") // draft, sending, completed, failed
   targetFilters String?  // JSON string of filters
   sentCount     Int      @default(0)

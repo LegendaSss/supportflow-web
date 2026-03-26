@@ -54,7 +54,7 @@ export async function POST(
             const now = Date.now()
             const threeDaysMs = 3 * 24 * 60 * 60 * 1000
 
-            clients = clients.filter(client => {
+            clients = clients.filter((client: any) => {
                 const rwUser = rwMap.get(client.remnawareId)
                 if (!rwUser) return false
 
@@ -97,24 +97,68 @@ export async function POST(
         // но для начала сделаем асинхронную итерацию)
 
         const sendMessages = async () => {
+            let currentMediaFileId = broadcast.mediaFileId;
+            let sentCount = 0
+            let errorCount = 0
+
+            // Если есть медиа, но нет file_id — отправляем ПЕРВОМУ клиенту отдельно, чтобы “засидить” (seed) Telegram CDN
+            if (broadcast.mediaUrl && !currentMediaFileId && clients.length > 0) {
+                const firstClient = clients[0];
+                const result = await broadcastToTelegram(
+                    firstClient.telegramId,
+                    broadcast.content,
+                    {
+                        url: broadcast.mediaUrl,
+                        type: broadcast.mediaType || 'photo'
+                    }
+                );
+
+                if (result.success && result.mediaFileId) {
+                    currentMediaFileId = result.mediaFileId;
+                    // Сохраняем в базу, чтобы при рестарте или в других рассылках не перекачивать
+                    await prisma!.broadcast.update({
+                        where: { id },
+                        data: { mediaFileId: currentMediaFileId }
+                    });
+                }
+
+                if (result.success) {
+                    await prisma!.broadcastRecipient.create({
+                        data: {
+                            broadcastId: id,
+                            clientId: firstClient.id,
+                            telegramId: firstClient.telegramId,
+                            messageId: result.messageId!,
+                            status: 'sent'
+                        }
+                    });
+                    sentCount++;
+                } else {
+                    errorCount++;
+                }
+                
+                // Убираем первого клиента из дальнейшего списка
+                clients.shift();
+            }
+
             const CONCURRENCY = 5
             const chunks: any[][] = []
             for (let i = 0; i < clients.length; i += CONCURRENCY) {
                 chunks.push(clients.slice(i, i + CONCURRENCY))
             }
 
-            let sentCount = 0
-            let errorCount = 0
-
             for (const chunk of chunks) {
                 const results = await Promise.all(chunk.map(async (client) => {
                     const result = await broadcastToTelegram(
                         client.telegramId,
                         broadcast.content,
-                        broadcast.mediaUrl ? {
+                        currentMediaFileId ? {
+                            mediaFileId: currentMediaFileId,
+                            type: broadcast.mediaType || 'photo'
+                        } : (broadcast.mediaUrl ? {
                             url: broadcast.mediaUrl,
                             type: broadcast.mediaType || 'photo'
-                        } : undefined
+                        } : undefined)
                     )
 
                     if (result.success && result.messageId) {
@@ -123,7 +167,6 @@ export async function POST(
                     return { client, success: false }
                 }))
 
-                // Batch create recipients for the chunk
                 const recipientsData = results
                     .filter(r => r.success)
                     .map(r => ({
@@ -143,18 +186,32 @@ export async function POST(
 
                 errorCount += (results.length - recipientsData.length)
 
-                // Update broadcast progress
                 await prisma!.broadcast.update({
                     where: { id },
                     data: {
                         sentCount,
                         errorCount,
-                        status: (sentCount + errorCount) >= clients.length ? 'completed' : 'sending'
+                        status: (sentCount + errorCount) >= (broadcast.totalCount || clients.length) ? 'completed' : 'sending'
                     }
                 })
 
-                // Small delay to prevent hitting burst limits
                 await new Promise(r => setTimeout(r, 100))
+            }
+
+            // Cleanup: Если рассылка завершена и был локальный файл — удаляем его (Zero-Storage)
+            if (broadcast.mediaUrl) {
+                try {
+                    const fs = require('fs');
+                    const path = require('path');
+                    const cleanUrl = broadcast.mediaUrl.startsWith('/') ? broadcast.mediaUrl.slice(1) : broadcast.mediaUrl;
+                    const localPath = path.join(process.cwd(), 'public', cleanUrl);
+                    if (fs.existsSync(localPath)) {
+                        fs.unlinkSync(localPath);
+                        console.log(`[Broadcast Cleanup] Deleted ${localPath} after completion.`);
+                    }
+                } catch (e) {
+                    console.error('[Broadcast Cleanup] Failed to delete file:', e);
+                }
             }
 
             logActivity('broadcast_completed', `Рассылка "${broadcast.title}" завершена: ${sentCount} успешно, ${errorCount} ошибок`, { broadcastId: id })

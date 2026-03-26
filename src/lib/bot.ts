@@ -10,15 +10,6 @@ const pendingTicketCreations = new Set<string>()
 let botInstance: Bot | null = null
 let isRunning = false
 
-// Папка для хранения медиа-файлов
-const MEDIA_DIR = path.join(process.cwd(), 'public', 'media')
-
-function ensureMediaDir() {
-    if (!fs.existsSync(MEDIA_DIR)) {
-        fs.mkdirSync(MEDIA_DIR, { recursive: true })
-    }
-}
-
 // Ленивая инициализация бота
 function getBot(): Bot | null {
     if (botInstance) return botInstance
@@ -26,22 +17,6 @@ function getBot(): Bot | null {
     if (!token) return null
     botInstance = new Bot(token)
     return botInstance
-}
-
-// Скачивание файла из Telegram
-async function downloadFile(bot: Bot, fileId: string, ext: string): Promise<string> {
-    ensureMediaDir()
-    const file = await bot.api.getFile(fileId)
-    const filePath = file.file_path!
-    const fileName = `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
-    const localPath = path.join(MEDIA_DIR, fileName)
-
-    const url = `https://api.telegram.org/file/bot${bot.token}/${filePath}`
-    const response = await fetch(url)
-    const buffer = Buffer.from(await response.arrayBuffer())
-    fs.writeFileSync(localPath, buffer)
-
-    return `/media/${fileName}`
 }
 
 // Получить или создать клиента
@@ -234,11 +209,28 @@ export async function sendToTelegram(
             } else {
                 sent = await bot.api.sendDocument(telegramId, inputFile, { caption: text })
             }
+            
+            try {
+                fs.unlinkSync(localPath)
+                console.log(`[sendToTelegram] Deleted temp file: ${localPath}`)
+            } catch (e) {
+                console.error(`[sendToTelegram] Failed to delete temp file:`, e)
+            }
         } else {
             sent = await bot.api.sendMessage(telegramId, text)
         }
 
         console.log(`[sendToTelegram] Successfully sent, msgId: ${sent.message_id}`)
+
+        let mediaFileId: string | undefined = undefined;
+        if (sent && media) {
+            const s = sent as any;
+            if (s.photo && s.photo.length > 0) mediaFileId = s.photo[s.photo.length - 1].file_id;
+            else if (s.video) mediaFileId = s.video.file_id;
+            else if (s.voice) mediaFileId = s.voice.file_id;
+            else if (s.document) mediaFileId = s.document.file_id;
+            else if (s.audio) mediaFileId = s.audio.file_id;
+        }
 
         const message = await prisma!.message.create({
             data: {
@@ -248,7 +240,8 @@ export async function sendToTelegram(
                 operatorId: operatorId || null,
                 telegramMsgId: sent.message_id,
                 mediaType: media?.type || null,
-                mediaUrl: media?.url || null,
+                mediaUrl: mediaFileId ? `/api/media/telegram/${mediaFileId}` : (media?.url || null),
+                mediaFileId: mediaFileId || null,
                 fileName: media?.fileName || null,
             },
         })
@@ -265,7 +258,8 @@ export async function broadcastToTelegram(
     telegramId: string,
     text: string,
     media?: {
-        url: string
+        url?: string
+        mediaFileId?: string
         type: string
         fileName?: string
     }
@@ -279,7 +273,16 @@ export async function broadcastToTelegram(
         }
 
         let sent;
-        if (media) {
+        if (media?.mediaFileId) {
+            // Re-use existing Telegram file_id
+            if (media.type === 'photo') {
+                sent = await bot.api.sendPhoto(telegramId, media.mediaFileId, { ...options, caption: text })
+            } else if (media.type === 'video') {
+                sent = await bot.api.sendVideo(telegramId, media.mediaFileId, { ...options, caption: text })
+            } else {
+                sent = await bot.api.sendDocument(telegramId, media.mediaFileId, { ...options, caption: text })
+            }
+        } else if (media?.url) {
             const cleanUrl = media.url.startsWith('/') ? media.url.slice(1) : media.url
             const localPath = path.join(process.cwd(), 'public', cleanUrl)
 
@@ -301,7 +304,16 @@ export async function broadcastToTelegram(
             sent = await bot.api.sendMessage(telegramId, text, options)
         }
 
-        return { success: true, messageId: sent.message_id }
+        let mediaFileId: string | undefined = undefined;
+        if (sent && media) {
+            const s = sent as any;
+            if (s.photo && s.photo.length > 0) mediaFileId = s.photo[s.photo.length - 1].file_id;
+            else if (s.video) mediaFileId = s.video.file_id;
+            else if (s.document) mediaFileId = s.document.file_id;
+            else if (s.audio) mediaFileId = s.audio.file_id;
+        }
+
+        return { success: true, messageId: sent.message_id, mediaFileId }
     } catch (error: any) {
         console.error(`[broadcastToTelegram] Error sending to ${telegramId}:`, error.message)
         return { success: false, error: error.message }
@@ -411,19 +423,12 @@ export async function startBot(): Promise<{ success: boolean; error?: string }> 
             const ticket = await getOrCreateTicket(client.id)
             const photo = ctx.message.photo[ctx.message.photo.length - 1] // Максимальное качество
 
-            let mediaUrl: string | undefined
-            try {
-                mediaUrl = await downloadFile(bot, photo.file_id, 'jpg')
-            } catch (e) {
-                console.error('Failed to download photo:', e)
-            }
-
             await saveMessage({
                 ticketId: ticket.id,
                 clientId: client.id,
                 content: ctx.message.caption || '📷 Фото',
                 mediaType: 'photo',
-                mediaUrl,
+                mediaUrl: `/api/media/telegram/${photo.file_id}`,
                 mediaFileId: photo.file_id,
                 telegramMsgId: ctx.message.message_id,
             })
@@ -437,19 +442,12 @@ export async function startBot(): Promise<{ success: boolean; error?: string }> 
             const ticket = await getOrCreateTicket(client.id)
             const video = ctx.message.video
 
-            let mediaUrl: string | undefined
-            try {
-                mediaUrl = await downloadFile(bot, video.file_id, 'mp4')
-            } catch (e) {
-                console.error('Failed to download video:', e)
-            }
-
             await saveMessage({
                 ticketId: ticket.id,
                 clientId: client.id,
                 content: ctx.message.caption || '🎬 Видео',
                 mediaType: 'video',
-                mediaUrl,
+                mediaUrl: `/api/media/telegram/${video.file_id}`,
                 mediaFileId: video.file_id,
                 fileName: video.file_name || undefined,
                 duration: video.duration,
@@ -465,19 +463,12 @@ export async function startBot(): Promise<{ success: boolean; error?: string }> 
             const ticket = await getOrCreateTicket(client.id)
             const voice = ctx.message.voice
 
-            let mediaUrl: string | undefined
-            try {
-                mediaUrl = await downloadFile(bot, voice.file_id, 'ogg')
-            } catch (e) {
-                console.error('Failed to download voice:', e)
-            }
-
             await saveMessage({
                 ticketId: ticket.id,
                 clientId: client.id,
                 content: '🎤 Голосовое сообщение',
                 mediaType: 'voice',
-                mediaUrl,
+                mediaUrl: `/api/media/telegram/${voice.file_id}`,
                 mediaFileId: voice.file_id,
                 duration: voice.duration,
                 telegramMsgId: ctx.message.message_id,
@@ -492,20 +483,12 @@ export async function startBot(): Promise<{ success: boolean; error?: string }> 
             const ticket = await getOrCreateTicket(client.id)
             const audio = ctx.message.audio
 
-            let mediaUrl: string | undefined
-            try {
-                const ext = audio.file_name?.split('.').pop() || 'mp3'
-                mediaUrl = await downloadFile(bot, audio.file_id, ext)
-            } catch (e) {
-                console.error('Failed to download audio:', e)
-            }
-
             await saveMessage({
                 ticketId: ticket.id,
                 clientId: client.id,
                 content: `🎵 ${audio.title || audio.file_name || 'Аудио'}`,
                 mediaType: 'audio',
-                mediaUrl,
+                mediaUrl: `/api/media/telegram/${audio.file_id}`,
                 mediaFileId: audio.file_id,
                 fileName: audio.file_name || undefined,
                 duration: audio.duration,
@@ -521,20 +504,12 @@ export async function startBot(): Promise<{ success: boolean; error?: string }> 
             const ticket = await getOrCreateTicket(client.id)
             const doc = ctx.message.document
 
-            let mediaUrl: string | undefined
-            try {
-                const ext = doc.file_name?.split('.').pop() || 'bin'
-                mediaUrl = await downloadFile(bot, doc.file_id, ext)
-            } catch (e) {
-                console.error('Failed to download document:', e)
-            }
-
             await saveMessage({
                 ticketId: ticket.id,
                 clientId: client.id,
                 content: ctx.message.caption || `📎 ${doc.file_name || 'Документ'}`,
                 mediaType: 'document',
-                mediaUrl,
+                mediaUrl: `/api/media/telegram/${doc.file_id}`,
                 mediaFileId: doc.file_id,
                 fileName: doc.file_name || undefined,
                 telegramMsgId: ctx.message.message_id,
@@ -549,22 +524,13 @@ export async function startBot(): Promise<{ success: boolean; error?: string }> 
             const ticket = await getOrCreateTicket(client.id)
             const sticker = ctx.message.sticker
 
-            let mediaUrl: string | undefined
-            try {
-                if (sticker.thumbnail) {
-                    mediaUrl = await downloadFile(bot, sticker.thumbnail.file_id, 'webp')
-                }
-            } catch (e) {
-                console.error('Failed to download sticker:', e)
-            }
-
             await saveMessage({
                 ticketId: ticket.id,
                 clientId: client.id,
                 content: sticker.emoji || '🏷️ Стикер',
                 mediaType: 'sticker',
-                mediaUrl,
-                mediaFileId: sticker.file_id,
+                mediaUrl: sticker.thumbnail ? `/api/media/telegram/${sticker.thumbnail.file_id}` : undefined,
+                mediaFileId: sticker.thumbnail?.file_id || sticker.file_id,
                 telegramMsgId: ctx.message.message_id,
             })
         })
@@ -589,19 +555,12 @@ export async function startBot(): Promise<{ success: boolean; error?: string }> 
             const ticket = await getOrCreateTicket(client.id)
             const videoNote = ctx.message.video_note
 
-            let mediaUrl: string | undefined
-            try {
-                mediaUrl = await downloadFile(bot, videoNote.file_id, 'mp4')
-            } catch (e) {
-                console.error('Failed to download video note:', e)
-            }
-
             await saveMessage({
                 ticketId: ticket.id,
                 clientId: client.id,
                 content: '🔵 Видеосообщение',
                 mediaType: 'video',
-                mediaUrl,
+                mediaUrl: `/api/media/telegram/${videoNote.file_id}`,
                 mediaFileId: videoNote.file_id,
                 duration: videoNote.duration,
                 telegramMsgId: ctx.message.message_id,
