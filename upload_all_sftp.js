@@ -11,7 +11,10 @@ const files = [
     { local: 'src/app/api/clients/[id]/diagnostics/route.ts', remote: '/root/app/web/src/app/api/clients/[id]/diagnostics/route.ts' },
     { local: 'src/app/api/clients/[id]/subscriptions/live/route.ts', remote: '/root/app/web/src/app/api/clients/[id]/subscriptions/live/route.ts' },
     { local: 'src/app/api/clients/[id]/subscriptions/hwid/route.ts', remote: '/root/app/web/src/app/api/clients/[id]/subscriptions/hwid/route.ts' },
-    { local: 'src/app/api/admin/media-cleanup/route.ts', remote: '/root/app/web/src/app/api/admin/media-cleanup/route.ts' }
+    { local: 'src/app/api/admin/media-cleanup/route.ts', remote: '/root/app/web/src/app/api/admin/media-cleanup/route.ts' },
+    { local: 'src/lib/remnawave.ts', remote: '/root/app/web/src/lib/remnawave.ts' },
+    { local: 'src/app/tickets/page.tsx', remote: '/root/app/web/src/app/tickets/page.tsx' },
+    { local: 'src/app/api/tickets/[id]/typing/route.ts', remote: '/root/app/web/src/app/api/tickets/[id]/typing/route.ts' }
 ];
 
 conn.on('ready', () => {
@@ -55,8 +58,18 @@ conn.on('ready', () => {
         };
 
         const runFinal = () => {
-            // Note: docker-compose build web might still use cache for some things, but since we manually updated files it should be okay.
-            const cmd = 'cd /root/app && docker-compose build web && docker-compose up -d && docker exec -w /app app-web-1 npx prisma db push --url="postgresql://postgres:hFaNk+iB2GBi4h@db:5432/supportflow?schema=public" --accept-data-loss';
+            // Protect server against Out Of Memory (OOM) during Next.js build
+            const setupSwap = `
+                if ! grep -q "swapfile" /proc/swaps; then
+                    fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile && echo '/swapfile none swap sw 0 0' >> /etc/fstab
+                    echo "✅ Swap file created!"
+                else
+                    echo "✅ Swap file already exists!"
+                fi
+            `;
+            const cmd = `${setupSwap} && cd /root/app && docker-compose build web && docker-compose up -d && docker exec -w /app app-web-1 npx prisma db push --url="postgresql://postgres:hFaNk+iB2GBi4h@db:5432/supportflow?schema=public" --accept-data-loss`;
+            
+            console.log('➜ Initializing Swap and Building Docker Container...');
             conn.exec(cmd, (err, stream) => {
                 stream.on('data', d => process.stdout.write(d))
                       .on('stderr', d => process.stderr.write(d))
