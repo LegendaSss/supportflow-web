@@ -11,7 +11,7 @@ let botInstance: Bot | null = null
 let isRunning = false
 
 // Ленивая инициализация бота
-function getBot(): Bot | null {
+export function getBot(): Bot | null {
     if (botInstance) return botInstance
     const token = process.env.TELEGRAM_BOT_TOKEN
     if (!token) return null

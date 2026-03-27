@@ -171,6 +171,7 @@ export default function TicketsPage() {
     const fileRef = useRef<HTMLInputElement>(null)
     const recorderRef = useRef<MediaRecorder | null>(null)
     const chunksRef = useRef<Blob[]>([])
+    const lastTypingSentRef = useRef<number>(0)
 
     useEffect(() => {
         fetchTickets()
@@ -453,6 +454,15 @@ export default function TicketsPage() {
             setTemplateFilter(val.slice(lastSlashIndex + 1))
         } else {
             setShowTemplateMenu(false)
+        }
+
+        // Trigger typing indicator with 5 seconds throttle
+        if (selectedTicket && val.trim().length > 0 && !isInternal && !editingMessageId) {
+            const now = Date.now()
+            if (now - lastTypingSentRef.current > 5000) {
+                lastTypingSentRef.current = now
+                fetch(`/api/tickets/${selectedTicket}/typing`, { method: 'POST' }).catch(() => {})
+            }
         }
     }
 

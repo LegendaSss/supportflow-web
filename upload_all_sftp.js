@@ -10,7 +10,8 @@ const files = [
     { local: 'src/app/api/clients/[id]/subscriptions/extend/route.ts', remote: '/root/app/web/src/app/api/clients/[id]/subscriptions/extend/route.ts' },
     { local: 'src/app/api/clients/[id]/diagnostics/route.ts', remote: '/root/app/web/src/app/api/clients/[id]/diagnostics/route.ts' },
     { local: 'src/app/api/clients/[id]/subscriptions/live/route.ts', remote: '/root/app/web/src/app/api/clients/[id]/subscriptions/live/route.ts' },
-    { local: 'src/app/api/clients/[id]/subscriptions/hwid/route.ts', remote: '/root/app/web/src/app/api/clients/[id]/subscriptions/hwid/route.ts' }
+    { local: 'src/app/api/clients/[id]/subscriptions/hwid/route.ts', remote: '/root/app/web/src/app/api/clients/[id]/subscriptions/hwid/route.ts' },
+    { local: 'src/app/api/admin/media-cleanup/route.ts', remote: '/root/app/web/src/app/api/admin/media-cleanup/route.ts' }
 ];
 
 conn.on('ready', () => {
@@ -71,5 +72,6 @@ conn.on('ready', () => {
 }).connect({
     host: '93.183.83.53',
     username: 'root',
-    password: 'hFaNk+iB2GBi4h'
+    password: 'hFaNk+iB2GBi4h',
+    readyTimeout: 120000
 });

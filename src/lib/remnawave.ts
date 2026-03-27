@@ -5,6 +5,9 @@ export class RemnaWaveService {
     private baseUrl: string;
     private apiKey: string;
 
+    // In-Memory Cache to minimize Remnawave API spam
+    private cache = new Map<string, { data: any, expiry: number }>();
+
     constructor() {
         this.baseUrl = process.env.REMNAWAVE_URL || '';
         this.apiKey = process.env.REMNAWAVE_API_KEY || '';
@@ -112,8 +115,16 @@ export class RemnaWaveService {
     }
 
     async getSquads() {
+        const cacheKey = 'squads';
+        const cached = this.cache.get(cacheKey);
+        if (cached && cached.expiry > Date.now()) {
+            return cached.data;
+        }
+
         const squads = await this.request('/api/internal-squads');
         if (squads && Array.isArray(squads.internalSquads)) {
+            // Cache for 5 minutes
+            this.cache.set(cacheKey, { data: squads.internalSquads, expiry: Date.now() + 300000 });
             return squads.internalSquads;
         }
         return [];
@@ -127,6 +138,11 @@ export class RemnaWaveService {
     }
 
     async updateUser(uuid: string, data: any) {
+        // Invalidate cache for this user if we know their telegramId, but since we only have UUID here,
+        // it's safer to just let the short TTL expire, or we can clear the whole cache if needed.
+        // For precision, we'll clear everything to ensure data consistency.
+        this.cache.clear();
+
         return this.request(`/api/users`, {
             method: 'PATCH',
             body: JSON.stringify({ uuid, ...data })
@@ -134,9 +150,17 @@ export class RemnaWaveService {
     }
 
     async getUserByTelegramId(telegramId: string) {
+        const cacheKey = `user_tg_${telegramId}`;
+        const cached = this.cache.get(cacheKey);
+        if (cached && cached.expiry > Date.now()) {
+            return cached.data;
+        }
+
         try {
             const resp = await this.request(`/api/users/by-telegram-id/${telegramId}`);
             if (resp && Array.isArray(resp) && resp.length > 0) {
+                // Cache user profile for 60 seconds
+                this.cache.set(cacheKey, { data: resp[0], expiry: Date.now() + 60000 });
                 return resp[0]; // Return the first matched user 
             }
             return null;
@@ -183,18 +207,21 @@ export class RemnaWaveService {
     }
 
     async deleteUser(uuid: string) {
+        this.cache.clear();
         return this.request(`/api/users/${uuid}`, {
             method: 'DELETE'
         });
     }
 
     async resetUserTraffic(uuid: string) {
+        this.cache.clear();
         return this.request(`/api/users/${uuid}/reset-traffic`, {
             method: 'POST'
         });
     }
 
     async resetUserHwid(uuid: string) {
+        this.cache.clear();
         return this.request(`/api/hwid/devices/delete-all`, {
             method: 'POST',
             body: JSON.stringify({ userUuid: uuid })
