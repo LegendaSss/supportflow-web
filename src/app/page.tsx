@@ -160,7 +160,7 @@ export default async function Dashboard() {
 
             <div className="stat-card" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '24px', padding: '24px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(238, 43, 84, 0.1)', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(139, 92, 246, 0.1)', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Zap size={20} />
                 </div>
               </div>
@@ -269,7 +269,7 @@ export default async function Dashboard() {
 
           <div style={{
             background: 'var(--accent-gradient)', borderRadius: '24px', padding: '24px', color: 'white',
-            boxShadow: '0 12px 24px rgba(238, 43, 84, 0.2)', position: 'relative', overflow: 'hidden'
+            boxShadow: '0 12px 24px rgba(139, 92, 246, 0.2)', position: 'relative', overflow: 'hidden'
           }}>
             <div style={{ position: 'relative', zIndex: 1 }}>
               <h4 style={{ fontSize: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>

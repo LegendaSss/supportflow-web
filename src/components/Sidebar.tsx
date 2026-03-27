@@ -191,9 +191,9 @@ export default function Sidebar() {
                         onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}>
                         <div style={{
                             width: '36px', height: '36px', borderRadius: '12px',
-                            background: unreadCount > 0 ? 'rgba(238, 43, 84, 0.1)' : 'var(--overlay-base)',
+                            background: unreadCount > 0 ? 'rgba(139, 92, 246, 0.1)' : 'var(--overlay-base)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            border: `1px solid ${unreadCount > 0 ? 'rgba(238, 43, 84, 0.3)' : 'var(--overlay-light)'}`,
+                            border: `1px solid ${unreadCount > 0 ? 'rgba(139, 92, 246, 0.3)' : 'var(--overlay-light)'}`,
                             transition: 'all 0.2s',
                             animation: unreadCount > 0 ? 'pulseCritical 2s infinite' : 'none'
                         }}>
@@ -266,7 +266,7 @@ export default function Sidebar() {
                                         marginLeft: 'auto', background: 'var(--accent-gradient)',
                                         color: 'white', fontSize: '11px', padding: '2px 8px',
                                         borderRadius: '12px', fontWeight: 800,
-                                        boxShadow: '0 2px 8px rgba(238, 43, 84, 0.4)'
+                                        boxShadow: '0 2px 8px rgba(139, 92, 246, 0.4)'
                                     }}>
                                         ✨
                                     </span>
@@ -343,7 +343,7 @@ export default function Sidebar() {
                                 color: soundEnabled ? 'var(--accent-primary)' : 'var(--text-secondary)',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 cursor: 'pointer', transition: 'all 0.2s',
-                                boxShadow: soundEnabled ? '0 4px 12px rgba(238, 43, 84, 0.15)' : 'none'
+                                boxShadow: soundEnabled ? '0 4px 12px rgba(139, 92, 246, 0.15)' : 'none'
                             }}
                             title={soundEnabled ? "Выключить звук" : "Включить звук"}
                         >
@@ -528,7 +528,7 @@ export default function Sidebar() {
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                             padding: '12px', borderRadius: '14px', background: 'var(--accent-primary)',
                             color: 'white', fontWeight: 700, textDecoration: 'none', fontSize: '14px',
-                            boxShadow: '0 10px 20px rgba(238, 43, 84, 0.2)'
+                            boxShadow: '0 10px 20px rgba(139, 92, 246, 0.2)'
                         }}>
                             Перейти в управление <ArrowUpRight size={16} />
                         </Link>
@@ -571,7 +571,7 @@ function NotificationList() {
     const getStyle = (type: string) => {
         switch (type) {
             case 'message_received': return { bg: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', icon: <MessageSquare size={16} /> }
-            case 'ticket_created': return { bg: 'rgba(238, 43, 84, 0.1)', color: 'var(--accent-primary)', icon: <Ticket size={16} /> }
+            case 'ticket_created': return { bg: 'rgba(139, 92, 246, 0.1)', color: 'var(--accent-primary)', icon: <Ticket size={16} /> }
             case 'payment_received': return { bg: 'rgba(16, 185, 129, 0.1)', color: '#10b981', icon: <Zap size={16} /> }
             default: return { bg: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6', icon: <Bell size={16} /> }
         }

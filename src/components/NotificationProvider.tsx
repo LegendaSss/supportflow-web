@@ -82,7 +82,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     const getToastStyle = (type: ToastType) => {
         switch (type) {
             case 'message': return { bg: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', icon: <MessageSquare size={20} /> }
-            case 'ticket': return { bg: 'rgba(238, 43, 84, 0.1)', color: 'var(--accent-primary)', icon: <Ticket size={20} /> }
+            case 'ticket': return { bg: 'rgba(139, 92, 246, 0.1)', color: 'var(--accent-primary)', icon: <Ticket size={20} /> }
             case 'payment': return { bg: 'rgba(16, 185, 129, 0.1)', color: '#10b981', icon: <ShieldCheck size={20} /> }
             case 'success': return { bg: 'rgba(16, 185, 129, 0.1)', color: '#10b981', icon: <Zap size={20} /> }
             default: return { bg: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', icon: <Info size={20} /> }

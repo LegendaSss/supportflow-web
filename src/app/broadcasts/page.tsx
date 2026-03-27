@@ -360,7 +360,7 @@ export default function BroadcastsPage() {
                                     />
                                 </div>
 
-                                <div style={{ background: 'rgba(238, 43, 84, 0.05)', padding: '16px', borderRadius: '16px', border: '1px dashed var(--accent-primary)', marginTop: '8px' }}>
+                                <div style={{ background: 'rgba(139, 92, 246, 0.05)', padding: '16px', borderRadius: '16px', border: '1px dashed var(--accent-primary)', marginTop: '8px' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', fontWeight: 600, color: 'var(--accent-primary)' }}>
                                         <Users size={16} /> Расчетная аудитория
                                     </div>
@@ -374,7 +374,7 @@ export default function BroadcastsPage() {
                             <button
                                 onClick={handleCreate}
                                 disabled={isCreating || isUploading}
-                                style={{ flex: 1, padding: '16px', background: 'var(--accent-gradient)', color: 'white', border: 'none', borderRadius: '16px', fontWeight: 700, fontSize: '16px', cursor: (isCreating || isUploading) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxShadow: '0 8px 24px rgba(238, 43, 84, 0.3)' }}
+                                style={{ flex: 1, padding: '16px', background: 'var(--accent-gradient)', color: 'white', border: 'none', borderRadius: '16px', fontWeight: 700, fontSize: '16px', cursor: (isCreating || isUploading) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxShadow: '0 8px 24px rgba(139, 92, 246, 0.3)' }}
                             >
                                 {isCreating ? <RefreshCw className="animate-spin" size={20} /> : <Zap size={20} />}
                                 Сохранить рассылку
@@ -413,7 +413,7 @@ export default function BroadcastsPage() {
                                                                 setEditContent(b.content)
                                                             }}
                                                             style={{
-                                                                padding: '4px 10px', background: 'rgba(238, 43, 84, 0.1)', color: 'var(--accent-primary)',
+                                                                padding: '4px 10px', background: 'rgba(139, 92, 246, 0.1)', color: 'var(--accent-primary)',
                                                                 border: 'none', borderRadius: '8px', fontSize: '11px', fontWeight: 700, cursor: 'pointer',
                                                                 display: 'flex', alignItems: 'center', gap: '5px'
                                                             }}

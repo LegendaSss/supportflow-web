@@ -242,12 +242,12 @@ export default function TariffsPage() {
     if (!stats) {
         return (
             <div style={{ padding: '80px 24px', textAlign: 'center', background: 'var(--bg-card)', borderRadius: '32px', border: '1px solid var(--border-color)', margin: '40px auto', maxWidth: '600px', backdropFilter: 'blur(20px)' }}>
-                <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(238, 43, 84, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-primary)', margin: '0 auto 24px' }}>
+                <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(139, 92, 246, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-primary)', margin: '0 auto 24px' }}>
                     <ShieldCheck size={40} />
                 </div>
                 <h2 style={{ color: 'var(--text-primary)', fontSize: '24px', fontWeight: 800, marginBottom: '12px' }}>Ошибка загрузки данных</h2>
                 <p style={{ color: 'var(--text-muted)', marginBottom: '32px', fontSize: '16px' }}>Не удалось синхронизироваться с финансовым шлюзом</p>
-                <button onClick={() => fetchStats(false)} style={{ padding: '12px 32px', background: 'var(--accent-primary)', color: 'white', border: 'none', borderRadius: '14px', fontWeight: 700, cursor: 'pointer', transition: 'all 0.3s ease', boxShadow: '0 8px 16px -4px rgba(238, 43, 84, 0.3)' }}>
+                <button onClick={() => fetchStats(false)} style={{ padding: '12px 32px', background: 'var(--accent-primary)', color: 'white', border: 'none', borderRadius: '14px', fontWeight: 700, cursor: 'pointer', transition: 'all 0.3s ease', boxShadow: '0 8px 16px -4px rgba(139, 92, 246, 0.3)' }}>
                     Попробовать снова
                 </button>
             </div>
@@ -303,9 +303,9 @@ export default function TariffsPage() {
                     border: 1px solid transparent;
                 }
                 .action-btn:hover {
-                    background: rgba(238, 43, 84, 0.1);
+                    background: rgba(139, 92, 246, 0.1);
                     color: var(--accent-primary);
-                    border-color: rgba(238, 43, 84, 0.2);
+                    border-color: rgba(139, 92, 246, 0.2);
                 }
                 .kpi-title {
                     font-size: 13px;
@@ -343,7 +343,7 @@ export default function TariffsPage() {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '12px',
-                    boxShadow: `0 10px 30px -5px ${toast.type === 'success' ? 'rgba(16, 185, 129, 0.4)' : 'rgba(238, 43, 84, 0.4)'}`,
+                    boxShadow: `0 10px 30px -5px ${toast.type === 'success' ? 'rgba(16, 185, 129, 0.4)' : 'rgba(139, 92, 246, 0.4)'}`,
                     zIndex: 2000,
                     animation: 'slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
                 }}>
@@ -492,7 +492,7 @@ export default function TariffsPage() {
 
                     <button
                         onClick={() => setIsTransactionModalOpen(true)}
-                        style={{ height: '48px', padding: '0 24px', background: 'var(--accent-primary)', color: 'white', border: 'none', borderRadius: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 10px 20px -5px rgba(238, 43, 84, 0.3)', cursor: 'pointer', transition: 'all 0.2s' }}
+                        style={{ height: '48px', padding: '0 24px', background: 'var(--accent-primary)', color: 'white', border: 'none', borderRadius: '16px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 10px 20px -5px rgba(139, 92, 246, 0.3)', cursor: 'pointer', transition: 'all 0.2s' }}
                     >
                         <Plus size={20} /> Новая операция
                     </button>
@@ -586,7 +586,7 @@ export default function TariffsPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px', marginBottom: '48px' }}>
                 <div className="glass-card">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                        <div style={{ width: '56px', height: '56px', borderRadius: '18px', background: 'linear-gradient(135deg, rgba(238, 43, 84, 0.2), rgba(238, 43, 84, 0.05))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-primary)' }}>
+                        <div style={{ width: '56px', height: '56px', borderRadius: '18px', background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.05))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-primary)' }}>
                             <TrendingUp size={28} />
                         </div>
                         <div style={{ textAlign: 'right' }}>
@@ -650,11 +650,11 @@ export default function TariffsPage() {
                                 <div style={{
                                     width: '100%',
                                     height: `${(d.amount / maxDaily) * 100}%`,
-                                    background: 'linear-gradient(180deg, var(--accent-primary) 0%, rgba(238, 43, 84, 0.4) 100%)',
+                                    background: 'linear-gradient(180deg, var(--accent-primary) 0%, rgba(139, 92, 246, 0.4) 100%)',
                                     borderRadius: '12px 12px 6px 6px',
                                     minHeight: '8px',
                                     transition: 'all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1)',
-                                    boxShadow: '0 4px 15px -2px rgba(238, 43, 84, 0.2)'
+                                    boxShadow: '0 4px 15px -2px rgba(139, 92, 246, 0.2)'
                                 }} />
                                 <div style={{
                                     position: 'absolute',
@@ -853,7 +853,7 @@ export default function TariffsPage() {
                                                         <ArrowUpRight size={12} /> Пополнение
                                                     </div>
                                                 ) : (
-                                                    <div className="status-badge" style={{ background: 'rgba(238, 43, 84, 0.1)', color: 'var(--accent-primary)' }}>
+                                                    <div className="status-badge" style={{ background: 'rgba(139, 92, 246, 0.1)', color: 'var(--accent-primary)' }}>
                                                         <ArrowDownRight size={12} /> Списание
                                                     </div>
                                                 )}
@@ -1000,7 +1000,7 @@ export default function TariffsPage() {
                             {selectedTx.operatorId && (
                                 <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '16px', borderBottom: '1px solid var(--border-color)' }}>
                                     <span style={{ color: 'var(--text-muted)', fontSize: '14px', fontWeight: 600 }}>Оператор (Admin ID)</span>
-                                    <span style={{ fontSize: '12px', fontFamily: 'monospace', color: 'var(--accent-primary)', background: 'rgba(238, 43, 84, 0.1)', padding: '4px 8px', borderRadius: '6px' }}>
+                                    <span style={{ fontSize: '12px', fontFamily: 'monospace', color: 'var(--accent-primary)', background: 'rgba(139, 92, 246, 0.1)', padding: '4px 8px', borderRadius: '6px' }}>
                                         {selectedTx.operatorId.split('-')[0]}
                                     </span>
                                 </div>

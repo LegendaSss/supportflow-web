@@ -135,7 +135,7 @@ function Heatmap({ data }: { data: number[][] }) {
                                 return (
                                     <div key={hIdx} style={{
                                         flex: 1, height: '14px', borderRadius: '3px',
-                                        background: `rgba(238, 43, 84, ${opacity})`,
+                                        background: `rgba(139, 92, 246, ${opacity})`,
                                         border: '1px solid rgba(255,255,255,0.02)'
                                     }} title={`${day}, ${hIdx}:00 - ${val} тикетов`} />
                                 )
